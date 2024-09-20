@@ -18,6 +18,8 @@ async function example () {
     }
   })
 
+  console.log(result)
+
   const data = []
 
   for (let i = 0; i < result.documents[0].length; i++) {
@@ -36,7 +38,7 @@ async function example () {
 
   console.log(data)
 
-  const text = await openai.assistantResponse(prompt, JSON.stringify(data))
+  const text = await openai.filterProducts(prompt, JSON.stringify(data))
   console.log(text)
 
   try {

@@ -103,7 +103,7 @@ module.exports = class OpenAIService {
     return response.choices[0].message.content
   }
 
-  assistantResponse = async (prompt, data) => {
+  filterProducts = async (prompt, data) => {
     try {
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',

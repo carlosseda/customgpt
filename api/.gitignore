@@ -1,0 +1,10 @@
+/node_modules
+.env
+package-lock.json
+/src/config/config.json
+/src/storage/images/gallery/original/*
+/src/storage/images/gallery/thumbnail/*
+/src/storage/images/resized/*
+/src/storage/pdfs/*
+/src/storage/tmp/*
+/src/chromadb

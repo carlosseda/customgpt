@@ -29,7 +29,7 @@
           {'label': 'Fecha de creación', 'field': 'createdAt'},
           {'label': 'Fecha de actualización', 'field': 'updatedAt'}
         ],
-        'recordButtons': ['edit', 'remove'],
+        'recordButtons': ['edit', 'remove', 'scrapping'],
         'tableButtons': ['filterButton']
       }"/>
     </table-component>
@@ -74,6 +74,38 @@
                       {
                         'headers': [
                           {'label': 'Título', 'field': 'title'}
+                        ],
+                        'recordButtons': ['edit', 'remove']
+                      }
+                    }
+                  ]
+                }
+              ]},
+              {'element': 'dependants', 'childs': [
+                {
+                  'name': 'categories', 
+                  'label': 'Categorías para la clasificación',
+                  'locale': false,
+                  'structure': [
+                    {'element': 'subform', 'width': 'half-width', 'endpoint': '/api/admin/assistant-categories', 'structure': 
+                      {
+                        'tabs': [
+                          {'name': 'general', 'label': 'General'}
+                        ],
+                        'inputs': {
+                          'general': {
+                            'noLocale': [
+                              {'name': 'id', 'element':'input', 'type': 'hidden'},
+                              {'name': 'name', 'element':'input', 'type': 'text', 'label': 'Nombre de la categoría', 'width': 'full-width'}
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {'element': 'subtable', 'width': 'half-width', 'endpoint': '/api/admin/assistant-categories', 'structure': 
+                      {
+                        'headers': [
+                          {'label': 'Categoría', 'field': 'name'}
                         ],
                         'recordButtons': ['edit', 'remove']
                       }

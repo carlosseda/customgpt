@@ -4,7 +4,7 @@ const Assistant = mongooseDb.Assistant
 
 exports.create = async (req, res) => {
   try {
-    const example = Object.keys(req.body)
+    const category = Object.keys(req.body)
     req.body.id = uuid.v4()
     req.body.createdAt = new Date()
     req.body.updatedAt = new Date()
@@ -12,11 +12,11 @@ exports.create = async (req, res) => {
 
     await Assistant.findByIdAndUpdate(req.body.parentId, {
       $push: {
-        examples: req.body
+        categories: req.body
       }
     })
 
-    res.status(200).send(example)
+    res.status(200).send(category)
   } catch (err) {
     res.status(500).send({
       message: err.errors || 'Algún error ha surgido al insertar el dato.'
@@ -36,8 +36,8 @@ exports.findAll = async (req, res) => {
       .exec()
 
     const response = {
-      rows: (result.examples)
-        ? result.examples.filter(example => !example.deletedAt).map(row => ({
+      rows: (result.categories)
+        ? result.categories.filter(category => !category.deletedAt).map(row => ({
           ...row
         }))
         : []
@@ -64,7 +64,7 @@ exports.findOne = async (req, res) => {
       .lean()
       .exec()
 
-    let data = result.examples.find(example => example.id === id)
+    let data = result.categories.find(category => category.id === id)
 
     if (data) {
       const newData = {}
@@ -102,18 +102,18 @@ exports.update = async (req, res) => {
       .lean()
       .exec()
 
-    const data = result.examples.find(example => example.id === id)
+    const data = result.categories.find(category => category.id === id)
 
     if (data) {
       const update = {}
 
       for (const key in req.body) {
         if (key === 'id') continue
-        update[`examples.$.${key}`] = req.body[key]
+        update[`categories.$.${key}`] = req.body[key]
       }
 
       await Assistant.updateOne(
-        { _id: req.body.parentId, 'examples.id': id },
+        { _id: req.body.parentId, 'categories.id': id },
         { $set: update }
       )
 
@@ -144,12 +144,12 @@ exports.delete = async (req, res) => {
       .lean()
       .exec()
 
-    const data = result.examples.find(example => example.id === id)
+    const data = result.categories.find(category => category.id === id)
 
     if (data) {
       await Assistant.updateOne(
-        { _id: req.query.parent, 'examples.id': id },
-        { $set: { 'examples.$.deletedAt': new Date() } }
+        { _id: req.query.parent, 'categories.id': id },
+        { $set: { 'categories.$.deletedAt': new Date() } }
       )
 
       res.status(200).send({

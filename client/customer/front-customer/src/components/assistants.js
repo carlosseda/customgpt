@@ -136,7 +136,7 @@ class Assistants extends HTMLElement {
     this.data.forEach(assistant => {
       const assistantElement = document.createElement('div')
       assistantElement.classList.add('assistant')
-      assistantElement.dataset.assistantId = assistant.id
+      assistantElement.dataset.assistantId = assistant._id
 
       const assistantIcon = document.createElement('div')
       assistantIcon.classList.add('assistant-icon')
@@ -171,7 +171,7 @@ class Assistants extends HTMLElement {
         const assistantElement = event.target.closest('.assistant')
 
         this.data.forEach(assistant => {
-          if (assistant.id === parseInt(assistantElement.dataset.assistantId)) {
+          if (assistant._id === assistantElement.dataset.assistantId) {
             store.dispatch(setAssistant(assistant))
           }
         })

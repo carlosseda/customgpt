@@ -1,4 +1,6 @@
 const OpenAI = require('openai')
+const { zodResponseFormat } = require('openai/helpers/zod')
+const { z } = require('zod')
 
 module.exports = class OpenAIService {
   constructor () {
@@ -103,7 +105,7 @@ module.exports = class OpenAIService {
     return response.choices[0].message.content
   }
 
-  filterProducts = async (prompt, data) => {
+  filterData = async (prompt, data) => {
     try {
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -143,17 +145,22 @@ module.exports = class OpenAIService {
     }
   }
 
-  extractKeywordsAndCategory = async (prompt) => {
+  extractKeywordsAndCategory = async (prompt, categories) => {
     try {
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+      const KeywordsAndCategory = z.object({
+        keywords: z.array(z.string()),
+        category: z.string()
+      })
+
+      const response = await this.openai.beta.chat.completions.parse({
+        model: 'gpt-4o-mini-2024-07-18',
         messages: [
           {
             role: 'system',
             content: [
               {
                 type: 'text',
-                text: ' Extrae en formato JSON una categoría entre "juego", "consola", "consola y juego", "accesorio" que resuma la frase aportada por el usuario. Además extrae las palabras clave, elige un máximo de 6 palabras que sean relevantes para describir el producto de manera única e identificable. Ejemplo: {"keywords": ["gameboy", "pocket", "roja"], category: "consola"}'
+                text: `Extrae una categoría entre ${categories} que resuma el texto aportado por el usuario. Además extrae las palabras clave, elige únicamente aquellas sean relevantes para describir el texto de manera única e identificable.`
               }
             ]
           },
@@ -172,12 +179,11 @@ module.exports = class OpenAIService {
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,
-        response_format: {
-          type: 'json_object'
-        }
+        response_format: zodResponseFormat(KeywordsAndCategory, 'keywordsAndCategory')
       })
 
-      return JSON.parse(response.choices[0].message.content)
+      const keywordsAndCategory = response.choices[0].message.parsed
+      return keywordsAndCategory
     } catch (error) {
       console.log(error)
     }

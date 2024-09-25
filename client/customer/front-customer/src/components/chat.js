@@ -7,6 +7,7 @@ class Chat extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
+    this.socket = new WebSocket(import.meta.env.VITE_WS_URL);
     this.unsubscribe = null
     this.assistant = null
     this.lastPrompt = null
@@ -39,6 +40,15 @@ class Chat extends HTMLElement {
         this.createAssistantResponse(currentState.chat.prompt)
       }
     })
+
+    this.socket.addEventListener('message', event => {
+      
+      const { channel, data } = JSON.parse(event.data);
+
+      if (channel === 'responseState') {
+        this.updateState(data);
+      }
+    });
 
     this.render()
   }
@@ -120,6 +130,12 @@ class Chat extends HTMLElement {
           margin-bottom: 3rem;
         }
 
+        .contents{
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
         .message{
           display: flex;
           flex-direction: column;
@@ -133,6 +149,12 @@ class Chat extends HTMLElement {
           margin: 0;
         }
 
+        .message h4{
+          color: hsl(0, 0%, 100%);
+          font-family: "SoehneBuch", sans-serif;
+          margin: 0;
+        }
+
         .message p{
           color: hsl(0, 0%, 100%);
           font-family: "SoehneBuch", sans-serif;
@@ -140,15 +162,49 @@ class Chat extends HTMLElement {
           margin: 0;
         }
 
-        .message p .state{
+        .message a, .message a:visited{
+          color: hsl(0, 0%, 100%);
+          font-family: "SoehneBuch", sans-serif;
+          font-size: 1rem;
+          margin-left: 0.5rem;
+          text-decoration: underline;
+        }
+
+        .message ol, .message ul{
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          margin: 0;
+        }
+
+        .message li{
+          color: hsl(0, 0%, 100%);
+          font-family: "SoehneBuch", sans-serif;
+          font-size: 1rem;
+          margin-left: 1rem;
+        }
+
+        .state {
+          align-items: center;
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .state-bubble{
           background-color: hsl(0, 0%, 100%);
           border-radius: 50%;
           height: 1rem;
           width: 1rem;
         }
 
-        .message p .state.active{
+        .state-bubble.active{
           animation: pulse 1s infinite;
+        }
+
+        .state-message{
+          color: hsl(0, 0%, 100%);
+          font-family: "SoehneBuch", sans-serif;
+          font-size: 0.9rem;
         }
 
         @keyframes pulse {
@@ -263,6 +319,7 @@ class Chat extends HTMLElement {
     promptContainer.appendChild(messageContainer)
 
     this.shadow.querySelector('.chat').appendChild(promptContainer)
+    this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
   }
 
   createAssistantResponse = async () => {
@@ -272,29 +329,38 @@ class Chat extends HTMLElement {
 
     const modelAvatar = document.createElement('img')
     const modelName = document.createElement('h3')
-    const prompt = document.createElement('p')
-    const waitState = document.createElement('div')
+    const contents = document.createElement('div')
+    const state = document.createElement('div')
+    const stateBubble = document.createElement('div')
+    const stateMessage = document.createElement('span')
+
 
     promptContainer.classList.add('prompt')
     avatarContainer.classList.add('avatar')
     messageContainer.classList.add('message')
     messageContainer.classList.add('model')
-    waitState.classList.add('state')
-    waitState.classList.add('active')
+    contents.classList.add('contents')
+    state.classList.add('state')
+    stateBubble.classList.add('state-bubble')
+    stateBubble.classList.add('active')
+    stateMessage.classList.add('state-message')
 
     modelAvatar.src = "images/user-avatar.png"
     modelName.textContent = this.assistant.name
 
-    prompt.appendChild(waitState);
+    contents.appendChild(state)
+    state.appendChild(stateBubble)
+    state.appendChild(stateMessage)
     avatarContainer.appendChild(modelAvatar)
     messageContainer.appendChild(modelName)
-    messageContainer.appendChild(prompt)
+    messageContainer.appendChild(contents)
 
     promptContainer.appendChild(messageContainer)
     promptContainer.appendChild(avatarContainer)
     promptContainer.appendChild(messageContainer)
 
     this.shadow.querySelector('.chat').appendChild(promptContainer)
+    this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
     store.dispatch(setResponseState(true))
 
     try {
@@ -313,7 +379,10 @@ class Chat extends HTMLElement {
 
       const response = await result.json()
 
-      await this.writeNewAnswer(response.answer)
+      this.shadow.querySelector('.state').remove()
+      const answer = JSON.parse(response.answer)
+      console.log(answer)
+      await this.writeNewAnswer(answer.contents, contents)
 
       if(!this.threadId){
         store.dispatch(setThread(response.threadId))
@@ -323,29 +392,63 @@ class Chat extends HTMLElement {
     }
   }
 
-  writeNewAnswer = async answer => {
+  writeNewAnswer = async (answer, container) => {
 
-    const textContainer = this.shadow.querySelector('.state').parentElement;
+    for(const section of answer){
 
-    for (let i = 0; i < answer.length; i++) {
+      const element = document.createElement(section.element)
+      container.appendChild(element)
+      
+      if(section.text && section.text.length > 0){
 
-      if(this.stopWriting){
-        this.stopWriting = false;
-        break;
+        await new Promise(resolve => {
+          let i = 0;
+          const intervalId = setInterval(() => {
+  
+            if(this.stopWriting){
+              this.stopWriting = false;
+              clearInterval(intervalId);
+              resolve();
+            }
+  
+            element.textContent += section.text[i];
+  
+            if(!this.scroll ){
+              this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
+            }
+  
+            i++;
+
+            if(i >= section.text.length){
+              clearInterval(intervalId);
+              resolve();
+            }
+  
+          }, 5);
+        });
       }
 
-      setTimeout(() => {
+      if(section.href && section.href.length > 0){
+        const link = document.createElement('a')
+        link.href = section.href
+        link.textContent = "Ver más"
+        element.appendChild(link)
+      }
 
-        textContainer.textContent += answer[i];
+      if(section.children && section.children.length > 0){
+        await this.writeNewAnswer(section.children, element)
+      } 
 
-        if(!this.scroll ){
-          this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
-        }
-
-      }, i * 10);
+      console.log(element)
     }
 
-    store.dispatch(setResponseState(false))
+    store.dispatch(setResponseState(false))      
+  }
+
+  updateState = (message) => {
+    const stateMessage = this.shadow.querySelector('.state-message')
+    stateMessage.innerHTML = ''
+    stateMessage.textContent = message
   }
 }
 

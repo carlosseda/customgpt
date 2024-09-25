@@ -3,6 +3,7 @@ const Assistant = mongooseDb.Assistant
 const OpenAIService = require('../../services/openai-service')
 const { ChromaClient } = require('chromadb')
 const chromaClient = new ChromaClient()
+const { broadcast } = require('../../services/websocket-service')
 
 exports.findAll = async (req, res) => {
   const whereStatement = {}
@@ -31,6 +32,8 @@ exports.assistantResponse = async (req, res) => {
       await openai.setThread(req.body.threadId)
       prompt = req.body.prompt
     } else {
+      broadcast('responseState', 'consultando mi fuente de conocimiento...')
+
       const chromadbCollection = await chromaClient.getOrCreateCollection({ name: req.body.assistant.name })
       const categories = req.body.assistant.categories.map(category => category.name)
       const object = await openai.extractKeywordsAndCategory(req.body.prompt, categories)
@@ -57,6 +60,7 @@ exports.assistantResponse = async (req, res) => {
       await openai.createThread()
     }
 
+    broadcast('responseState', 'analizando los datos...')
     await openai.createMessage(prompt)
     await openai.createAnswer(req.body.assistant.assistantEndpoint)
 

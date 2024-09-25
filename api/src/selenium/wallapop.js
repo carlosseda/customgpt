@@ -32,7 +32,7 @@ module.exports = class Wallapop {
     if (!fs.existsSync(this.dirPath)) {
       fs.mkdirSync(this.dirPath, { recursive: true })
     } else {
-      fs.rmdirSync(this.dirPath, { recursive: true })
+      fs.rmSync(this.dirPath, { recursive: true })
       fs.mkdirSync(this.dirPath, { recursive: true })
     }
   }
@@ -43,12 +43,12 @@ module.exports = class Wallapop {
 
   async setChromaClient (collection) {
     const client = new ChromaClient()
-    this.chromadbCollection = await client.getCollection({ name: collection })
 
-    if (this.chromadbCollection) {
+    try {
+      this.chromadbCollection = await client.getCollection({ name: collection })
       await client.deleteCollection(this.chromadbCollection)
       this.chromadbCollection = await client.createCollection({ name: collection })
-    } else {
+    } catch (err) {
       this.chromadbCollection = await client.createCollection({ name: collection })
     }
   }

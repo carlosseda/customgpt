@@ -6,11 +6,13 @@ const path = require('path')
 exports.create = async (req, res) => {
   try {
     req.body.chromadb = req.body.name.toLowerCase().replace(/ /g, '_')
-    const data = await Assistant.create(req.body)
-    data.id = data._id
+    let data = await Assistant.create(req.body)
+    data = data.toObject(); 
+    data.id = data._id.toString(); 
 
     res.status(200).send(data)
   } catch (err) {
+    console.log(err)
     res.status(500).send({
       message: err.errors || 'Algún error ha surgido al insertar el dato.'
     })

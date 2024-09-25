@@ -33,6 +33,7 @@ class Form extends HTMLElement {
       }
 
       if (currentState.crud.parentElement && this.getAttribute('subform') && !isEqual(this.parent, currentState.crud.parentElement.data)) {
+        console.log('parent', currentState.crud.parentElement.data)
         this.parent = currentState.crud.parentElement.data
         this.render()
       }

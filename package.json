@@ -10,6 +10,12 @@
     "dev:front-customer": "cd client/customer/front-customer && npm run dev", 
     "dev:auth-customer": "cd client/customer/auth-customer && npm run dev",
     "dev:auth": "cd client/auth && npm run dev",
+    "install": "npm-run-all --parallel install:front-admin install:auth-admin install:front-customer install:auth-customer install:auth",
+    "install:front-admin": "cd client/admin/front-admin && npm install", 
+    "install:auth-admin": "cd client/admin/auth-admin && npm install",
+    "install:front-customer": "cd client/customer/front-customer && npm install", 
+    "install:auth-customer": "cd client/customer/auth-customer && npm install",
+    "install:auth": "cd client/auth && npm install",
     "proxy": "node ./proxy.js"
   },
   "devDependencies": {

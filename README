@@ -3,3 +3,9 @@ Abrir la base de datos de vectores desde cmd. Ir hasta la carpeta del proyecto y
 ```
 chroma run --path ./api/src/chromadb
 ```
+
+Para selenium, instalar el último drive de Chrome y verificar que nuestro navegador está en la misma versión
+
+```
+https://googlechromelabs.github.io/chrome-for-testing/#stable
+```

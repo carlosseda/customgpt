@@ -144,6 +144,7 @@ exports.scrapping = async (req, res) => {
     const filePath = path.resolve(__dirname, `../../selenium/${data.name.toLowerCase()}.js`)
     const ScrappingClass = require(filePath)
     const scrappingClass = new ScrappingClass()
+    await scrappingClass.setChromaClient(data.name)
     await scrappingClass.setCategories(categories)
     await scrappingClass.scrapping()
 

@@ -9,7 +9,6 @@ const path = require('path')
 module.exports = class Wallapop {
   constructor () {
     const chromeOptions = new chrome.Options()
-
     chromeOptions.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
     chromeOptions.addArguments('--disable-search-engine-choice-screen')
     chromeOptions.setUserPreferences({
@@ -27,10 +26,31 @@ module.exports = class Wallapop {
 
     this.urls = []
     this.categories = null
+
+    this.dirPath = path.resolve(__dirname, './../storage/scrapping/wallapop')
+
+    if (!fs.existsSync(this.dirPath)) {
+      fs.mkdirSync(this.dirPath, { recursive: true })
+    } else {
+      fs.rmdirSync(this.dirPath, { recursive: true })
+      fs.mkdirSync(this.dirPath, { recursive: true })
+    }
   }
 
   async setCategories (categories) {
     this.categories = categories
+  }
+
+  async setChromaClient (collection) {
+    const client = new ChromaClient()
+    this.chromadbCollection = await client.getCollection({ name: collection })
+
+    if (this.chromadbCollection) {
+      await client.deleteCollection(this.chromadbCollection)
+      this.chromadbCollection = await client.createCollection({ name: collection })
+    } else {
+      this.chromadbCollection = await client.createCollection({ name: collection })
+    }
   }
 
   async scrapping () {
@@ -60,7 +80,7 @@ module.exports = class Wallapop {
         console.log('No se encontró el botón "Ver más productos".', err)
       }
 
-      while (this.urls.length < 3) {
+      while (this.urls.length < 30) {
         await this.driver.wait(until.elementsLocated(By.css('.ItemCardList__item')), 10000)
         const elements = await this.driver.findElements(By.css('.ItemCardList__item'))
 
@@ -68,7 +88,7 @@ module.exports = class Wallapop {
           const url = await element.getAttribute('href')
           this.urls.push(url)
 
-          if (this.urls.length >= 3) {
+          if (this.urls.length >= 30) {
             break
           }
         }
@@ -87,15 +107,6 @@ module.exports = class Wallapop {
 
   async extractDetailsFromUrls () {
     const openai = new OpenAIService()
-
-    const dirPath = path.resolve(__dirname, './../storage/scrapping/wallapop')
-
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true })
-    } else {
-      fs.rmdirSync(dirPath, { recursive: true })
-      fs.mkdirSync(dirPath, { recursive: true })
-    }
 
     const allDetails = []
 
@@ -161,11 +172,11 @@ module.exports = class Wallapop {
               })
             })
 
-            if (!fs.existsSync(`${dirPath}/images/${url.split('-').pop()}`)) {
-              fs.mkdirSync(`${dirPath}/images/${url.split('-').pop()}`, { recursive: true })
+            if (!fs.existsSync(`${this.dirPath}/images/${url.split('-').pop()}`)) {
+              fs.mkdirSync(`${this.dirPath}/images/${url.split('-').pop()}`, { recursive: true })
             }
 
-            fs.writeFile(`${dirPath}/images/${url.split('-').pop()}/${image.split('/').pop().split('?')[0]}`, buffer, () => {
+            fs.writeFile(`${this.dirPath}/images/${url.split('-').pop()}/${image.split('/').pop().split('?')[0]}`, buffer, () => {
               console.log(`Imagen guardada para ${url}`)
             })
           } catch (err) {
@@ -212,35 +223,25 @@ module.exports = class Wallapop {
     })
 
     try {
-      const client = new ChromaClient()
-      let chromadbCollection = await client.getCollection({ name: 'wallapop' })
-
-      if (chromadbCollection) {
-        await client.deleteCollection(chromadbCollection)
-        chromadbCollection = await client.createCollection({ name: 'wallapop' })
-      } else {
-        chromadbCollection = await client.createCollection({ name: 'wallapop' })
-      }
-
-      await chromadbCollection.add({
+      await this.chromadbCollection.add({
         ids,
         metadatas,
         documents
       })
-
-      if (!fs.existsSync(`${dirPath}/json`)) {
-        await fs.mkdirSync(`${dirPath}/json`, { recursive: true })
-      }
-
-      fs.writeFile(`${dirPath}/json/wallapop.json`, JSON.stringify(allDetails, null, 2), (err) => {
-        if (err) {
-          console.error('Error al guardar los detalles en el archivo JSON:', err)
-        } else {
-          console.log('Detalles guardados en wallapop.json')
-        }
-      })
     } catch (err) {
       console.log(err)
     }
+
+    if (!fs.existsSync(`${this.dirPath}/json`)) {
+      await fs.mkdirSync(`${this.dirPath}/json`, { recursive: true })
+    }
+
+    fs.writeFile(`${this.dirPath}/json/wallapop.json`, JSON.stringify(allDetails, null, 2), (err) => {
+      if (err) {
+        console.error('Error al guardar los detalles en el archivo JSON:', err)
+      } else {
+        console.log('Detalles guardados en wallapop.json')
+      }
+    })
   }
 }

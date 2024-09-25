@@ -115,7 +115,8 @@ module.exports = class OpenAIService {
             content: [
               {
                 type: 'text',
-                text: 'Ante la pregunta del usuario, proporciona una respuesta humana que contenga los elementos que más se acerquen a la búsqueda del usuario y contengan la url de cada elemento (entre las etiquetas <url></url>). Si no encuentras nada responde "No he encontrado nada".'
+                text: `Ante la pregunta del usuario, proporciona una respuesta humana que contenga los elementos que más se acerquen a la búsqueda del usuario y contengan la url de cada elemento. Si no encuentras nada responde "No he encontrado nada".
+                Tu respuesta debe contener etiquetas HTML para que sea visualmente atractiva.`
               }
             ]
           },

@@ -32,7 +32,8 @@ exports.assistantResponse = async (req, res) => {
       prompt = req.body.prompt
     } else {
       const chromadbCollection = await chromaClient.getOrCreateCollection({ name: req.body.assistant.name })
-      const object = await openai.extractKeywordsAndCategory(req.body.prompt, req.body.assistant.categories)
+      const categories = req.body.assistant.categories.map(category => category.name)
+      const object = await openai.extractKeywordsAndCategory(req.body.prompt, categories)
 
       const result = await chromadbCollection.query({
         nResults: 10,

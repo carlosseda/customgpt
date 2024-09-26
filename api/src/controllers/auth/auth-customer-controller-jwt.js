@@ -1,4 +1,7 @@
+require('dotenv').config()
+const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const process = require('process')
 const sequelizeDb = require('../../models/sequelize')
 const CustomerStaff = sequelizeDb.CustomerStaff
 const CustomerStaffCredential = sequelizeDb.CustomerStaffCredential
@@ -13,20 +16,16 @@ exports.signin = async (req, res) => {
       return res.status(400).send({ message: 'La dirección de correo electrónico no es válida.' })
     }
 
-    const data = await CustomerStaffCredential.findOne({
+    const customerStaffCredential = await CustomerStaffCredential.findOne({
       where: {
         email: req.body.email,
         deletedAt: null
       }
     })
 
-    if (!data) {
-      return res.status(404).send({ message: 'Usuario o contraseña incorrecta' })
-    }
-
     const passwordIsValid = bcrypt.compareSync(
       req.body.password,
-      data.password
+      customerStaffCredential.password
     )
 
     if (!passwordIsValid) {
@@ -35,11 +34,14 @@ exports.signin = async (req, res) => {
       })
     }
 
-    const customerStaff = await CustomerStaff.findByPk(data.customerStaffId)
+    const customerStaff = await CustomerStaff.findByPk(customerStaffCredential.customerStaffId)
 
-    req.session.customer = { customerStaffId: data.customerStaffId, customerId: customerStaff.customerId, type: 'customerStaff' }
+    const token = jwt.sign({ customerStaffId: customerStaffCredential.customerStaffId, customerId: customerStaff.customerId, type: 'customerStaff' }, process.env.JWT_SECRET, {
+      expiresIn: 86400
+    })
 
     res.status(200).send({
+      customerAccessToken: token,
       redirection: '/'
     })
   } catch (err) {
@@ -49,15 +51,9 @@ exports.signin = async (req, res) => {
 }
 
 exports.checkSignin = (req, res) => {
-  if (req.session.customer) {
-    res.status(200).send({
-      redirection: '/'
-    })
-  } else {
-    res.status(401).send({
-      redirection: '/login'
-    })
-  }
+  res.status(200).send({
+    redirection: '/cliente'
+  })
 }
 
 exports.reset = async (req, res) => {

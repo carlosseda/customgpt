@@ -16,7 +16,6 @@ class LoginForm extends HTMLElement {
       const result = await fetch(`${endpoint}/api/auth/customer/check-signin`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + localStorage.getItem('customerAccessToken')
         }
       })
 

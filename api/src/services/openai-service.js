@@ -145,6 +145,41 @@ module.exports = class OpenAIService {
     return response.choices[0].message.content
   }
 
+  async analyzeImages (images, prompt) {
+
+    const content = [{  type: 'text', text: `${prompt}`}]
+  
+    for (const image of images) {
+      content.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:image/webp;base64,${image}`,
+          detail: 'high'
+        }
+      })
+    }
+
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: content
+        }
+      ],
+      temperature: 1,
+      max_tokens: 2048,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+      response_format: {
+        type: 'text'
+      }
+    })
+
+    return response.choices[0].message.content
+  }
+
   filterData = async (prompt, data) => {
     try {
       const response = await this.openai.chat.completions.create({

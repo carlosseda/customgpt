@@ -1,6 +1,6 @@
 import isEqual from 'lodash-es/isEqual'
 import { store } from '../redux/store.js'
-import { setResponseState, setThread } from '../redux/chat-slice.js'
+import { setResponseState, setThread, setImages } from '../redux/chat-slice.js'
 
 class Chat extends HTMLElement {
 
@@ -120,6 +120,7 @@ class Chat extends HTMLElement {
         .prompt{ 
           display: flex;
           gap: 1rem;
+          width: 100%;
         }
 
         .prompt:first-child{
@@ -134,12 +135,14 @@ class Chat extends HTMLElement {
           display: flex;
           flex-direction: column;
           gap: 1rem;
+          width: 100%;
         }
 
         .message{
           display: flex;
           flex-direction: column;
           gap: 1rem;
+          width: 100%;
         }
 
         .message h3{
@@ -181,6 +184,17 @@ class Chat extends HTMLElement {
           font-family: "SoehneBuch", sans-serif;
           font-size: 1rem;
           margin-left: 1rem;
+        }
+
+        .message .images{
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          margin: 1rem 0;
+        }
+
+        .message .images img{
+          width: 150px;
         }
 
         .state {
@@ -290,6 +304,30 @@ class Chat extends HTMLElement {
         this.scroll = true;
       }
     });
+
+    this.shadow.querySelector('.chat').addEventListener('click', event => {
+      if (event.target.closest('img')) {
+        this.showImage(event.target.closest('img'))
+      }
+    })
+  }
+
+  showImage = (currentImage) => {    
+    const imagesLoaded = currentImage.parentElement.querySelectorAll('img')
+    const imagesSrc = []
+    
+    imagesLoaded.forEach(image => {
+      imagesSrc.push(image.getAttribute('src'))
+    })
+
+    const imageIndex = imagesSrc.findIndex(imageSrc => imageSrc === currentImage.src)
+
+    const images = {
+      src: imagesSrc,
+      index: imageIndex,
+    }
+
+    store.dispatch(setImages(images))
   }
 
   createUserMessage = newPrompt => {
@@ -366,8 +404,7 @@ class Chat extends HTMLElement {
       const result = await fetch(`${import.meta.env.VITE_API_URL}/api/customer/assistants/response`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + localStorage.getItem('customerAccessToken')
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           threadId: this.threadId ? this.threadId : null,
@@ -379,7 +416,6 @@ class Chat extends HTMLElement {
       const response = await result.json()
 
       this.shadow.querySelector('.state').remove()
-      console.log(response.answer)
       await this.writeNewAnswer(response.answer, contents)
 
       if(!this.threadId){
@@ -419,7 +455,7 @@ class Chat extends HTMLElement {
       }
 
       this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
-    }, 5); 
+    }, 1); 
 
     store.dispatch(setResponseState(false))      
   }

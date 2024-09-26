@@ -41,12 +41,7 @@ class History extends HTMLElement {
 
   async loadData () {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/customer/chats`, {
-        headers: {
-          Authorization: 'Bearer ' + localStorage.getItem('customerAccessToken')
-        }
-      })
-
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/customer/chats`)
       this.data = await response.json()
     } catch (error) {
       console.log(error)

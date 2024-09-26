@@ -8,3 +8,5 @@ import './components/history.js'
 import './components/prompt-input.js'
 import './components/assistants.js'
 import './components/user.js'
+import './components/image-viewer.js'
+

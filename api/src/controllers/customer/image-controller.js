@@ -19,7 +19,7 @@ exports.getCollectionImage = async (req, res) => {
   const fileName = req.params.filename
 
   const options = {
-    root: __dirname + `../../storage/scrapping/${collection}/${folderId}/`,
+    root: __dirname + `../../../storage/assistants/${collection}/images/${folderId}/`,
     dotfiles: 'deny',
     headers: {
       'x-timestamp': Date.now(),

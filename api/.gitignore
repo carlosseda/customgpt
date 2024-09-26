@@ -6,6 +6,6 @@ package-lock.json
 /src/storage/images/gallery/thumbnail/*
 /src/storage/images/resized/*
 /src/storage/pdfs/*
-/src/storage/scrapping/*
+/src/storage/assistants/*
 /src/storage/tmp/*
 /src/chromadb

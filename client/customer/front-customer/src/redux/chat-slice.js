@@ -7,6 +7,7 @@ export const chatSlice = createSlice({
     threadId: null,
     prompt: null,
     responseState: false,
+    images: null
   },
   reducers: {
     setAssistant: (state, action) => {
@@ -20,10 +21,13 @@ export const chatSlice = createSlice({
     },
     setResponseState: (state, action) => {
       state.responseState = action.payload
+    },
+    setImages: (state, action) => {
+      state.images = action.payload
     }
   }
 })
 
-export const { setAssistant, newPrompt, setResponseState, setThread } = chatSlice.actions
+export const { setAssistant, newPrompt, setResponseState, setThread, setImages } = chatSlice.actions
 
 export default chatSlice.reducer

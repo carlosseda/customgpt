@@ -20,10 +20,6 @@ class PageComponent extends HTMLElement {
     this.screenWidth = window.innerWidth
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/customer/routes`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('customerAccessToken'),
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ screenWidth: this.screenWidth })
     })
 

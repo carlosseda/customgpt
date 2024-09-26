@@ -17,12 +17,7 @@ class Assistants extends HTMLElement {
     const url = `${import.meta.env.VITE_API_URL}/api/customer/assistants`
 
     try {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: 'Bearer ' + localStorage.getItem('customerAccessToken')
-        }
-      })
-
+      const response = await fetch(url)
       this.data = await response.json()
 
     } catch (error) {

@@ -27,7 +27,7 @@ module.exports = class Wallapop {
     this.urls = []
     this.categories = null
 
-    this.dirPath = path.resolve(__dirname, './../storage/scrapping/wallapop')
+    this.dirPath = path.resolve(__dirname, './../storage/assistants/wallapop')
 
     if (!fs.existsSync(this.dirPath)) {
       fs.mkdirSync(this.dirPath, { recursive: true })
@@ -214,11 +214,11 @@ module.exports = class Wallapop {
     const documents = []
 
     allDetails.forEach((detail) => {
-      const id = detail.url.split('/').pop()
+      const id = detail.url.split('-').pop()
       const text = `${detail.title}. ${detail.description}`
 
       ids.push(id)
-      metadatas.push({ price: detail.price, state: detail.state, url: detail.url, category: detail.category, text })
+      metadatas.push({ id, price: detail.price, state: detail.state, url: detail.url, category: detail.category, text })
       documents.push(detail.keywords.join(' '))
     })
 

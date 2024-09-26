@@ -5,10 +5,11 @@ const path = require('path')
 
 exports.create = async (req, res) => {
   try {
+    req.body.name = req.body.name.toLowerCase()
     req.body.chromadb = req.body.name.toLowerCase().replace(/ /g, '_')
     let data = await Assistant.create(req.body)
-    data = data.toObject(); 
-    data.id = data._id.toString(); 
+    data = data.toObject()
+    data.id = data._id.toString()
 
     res.status(200).send(data)
   } catch (err) {

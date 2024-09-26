@@ -3,6 +3,8 @@ const Assistant = mongooseDb.Assistant
 const OpenAIService = require('../../services/openai-service')
 const { ChromaClient } = require('chromadb')
 const chromaClient = new ChromaClient()
+const fs = require('fs')
+const path = require('path')
 const { broadcast } = require('../../services/websocket-service')
 
 exports.findAll = async (req, res) => {
@@ -61,8 +63,37 @@ exports.assistantResponse = async (req, res) => {
     }
 
     broadcast('responseState', 'analizando los datos...')
+    await openai.setAssistant(req.body.assistant.assistantEndpoint)
     await openai.createMessage(prompt)
-    await openai.createAnswer(req.body.assistant.assistantEndpoint)
+    await openai.runStatus()
+
+    if (openai.tools) {
+      const toolsOutputs = []
+
+      for (const tool of openai.tools) {
+        const data = JSON.parse(tool.function.arguments)
+
+        if (tool.function.name === 'get_images') {
+          broadcast('responseState', 'seleccionando imágenes...')
+          const images = await this.getImages(req.body.assistant.name, data.productId)
+          console.log(images)
+          toolsOutputs.push({
+            tool_call_id: tool.id,
+            output: images
+          })
+        }
+
+        if (tool.function.name === 'analyze_images') {
+          const images = await this.analyzeImages(req.body.assistant.name, data.productId)
+          toolsOutputs.push({
+            tool_call_id: tool.id,
+            output: images
+          })
+        }
+      }
+
+      await openai.submitToolOutputs(toolsOutputs)
+    }
 
     const data = {
       customerStaffId: req.customerStaffId,
@@ -80,8 +111,42 @@ exports.assistantResponse = async (req, res) => {
       answer: openai.answer
     }
 
+    console.log(response)
+
     res.status(200).send(response)
   } catch (error) {
     console.log(error)
   }
+}
+
+exports.getImages = async (collection, folderId) => {
+  const images = []
+  const imagesPath = path.join(__dirname, `../../storage/scrapping/${collection}/images/${folderId}`)
+
+  if (fs.existsSync(imagesPath)) {
+    const files = fs.readdirSync(imagesPath)
+
+    for (const file of files) {
+      const url = `${process.env.API_URL}/api/customer/images/${collection}/${folderId}/${file}`
+      images.push({ url })
+    }
+  }
+
+  return JSON.stringify(images)
+}
+
+exports.analyzeImages = async (collection, folderId) => {
+  const images = []
+  const imagesPath = path.join(__dirname, `../../storage/scrapping/${collection}/images/${folderId}`)
+
+  if (fs.existsSync(imagesPath)) {
+    const files = fs.readdirSync(imagesPath)
+
+    for (const file of files) {
+      const image = fs.readFileSync(path.join(imagesPath, file))
+      images.push(image)
+    }
+  }
+
+  return images
 }

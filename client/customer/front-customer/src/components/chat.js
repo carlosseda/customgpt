@@ -152,7 +152,6 @@ class Chat extends HTMLElement {
         .message h4{
           color: hsl(0, 0%, 100%);
           font-family: "SoehneBuch", sans-serif;
-          margin: 0;
         }
 
         .message p{
@@ -380,9 +379,8 @@ class Chat extends HTMLElement {
       const response = await result.json()
 
       this.shadow.querySelector('.state').remove()
-      const answer = JSON.parse(response.answer)
-      console.log(answer)
-      await this.writeNewAnswer(answer.contents, contents)
+      console.log(response.answer)
+      await this.writeNewAnswer(response.answer, contents)
 
       if(!this.threadId){
         store.dispatch(setThread(response.threadId))
@@ -394,53 +392,34 @@ class Chat extends HTMLElement {
 
   writeNewAnswer = async (answer, container) => {
 
-    for(const section of answer){
+    let i = 0 
+    let html = ''
+    let tag = ''
 
-      const element = document.createElement(section.element)
-      container.appendChild(element)
-      
-      if(section.text && section.text.length > 0){
-
-        await new Promise(resolve => {
-          let i = 0;
-          const intervalId = setInterval(() => {
-  
-            if(this.stopWriting){
-              this.stopWriting = false;
-              clearInterval(intervalId);
-              resolve();
-            }
-  
-            element.textContent += section.text[i];
-  
-            if(!this.scroll ){
-              this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
-            }
-  
-            i++;
-
-            if(i >= section.text.length){
-              clearInterval(intervalId);
-              resolve();
-            }
-  
-          }, 5);
-        });
+    const interval = setInterval(() => {
+      if (i >= answer.length) {
+        clearInterval(interval);
+        return;
       }
 
-      if(section.href && section.href.length > 0){
-        const link = document.createElement('a')
-        link.href = section.href
-        link.textContent = "Ver más"
-        element.appendChild(link)
+      const char = answer[i++];
+
+      if (char === '<') {
+        tag = char;
+      } else if (tag) {
+        tag += char;
+        if (char === '>') {
+          html += tag;
+          tag = '';
+          container.innerHTML = html;
+        }
+      } else {
+        html += char;
+        container.innerHTML = html;
       }
 
-      if(section.children && section.children.length > 0){
-        await this.writeNewAnswer(section.children, element)
-      } 
-
-      console.log(element)
-    }
+      this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
+    }, 5); 
 
     store.dispatch(setResponseState(false))      
   }

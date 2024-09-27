@@ -97,6 +97,10 @@ class ImageViewer extends HTMLElement {
         .image-viewer-content img{
           max-height: 100%;
           max-width: 100%;
+          user-select: none;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
         }
 
         .previous-button, .next-button{

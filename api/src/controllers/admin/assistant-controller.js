@@ -7,6 +7,8 @@ exports.create = async (req, res) => {
   try {
     req.body.name = req.body.name.toLowerCase()
     req.body.chromadb = req.body.name.toLowerCase().replace(/ /g, '_')
+    req.body.images = await req.imageService.resizeImages(req.body.images)
+
     let data = await Assistant.create(req.body)
     data = data.toObject()
     data.id = data._id.toString()
@@ -72,6 +74,7 @@ exports.findOne = async (req, res) => {
 
   try {
     const data = await Assistant.findById(id).lean().exec()
+    data.images = data.images.adminImages
 
     if (data) {
       data.id = data._id
@@ -96,19 +99,23 @@ exports.update = async (req, res) => {
   const id = req.params.id
 
   try {
-    const data = await Assistant.findByIdAndUpdate(id, req.body, { new: true })
+    req.body.name = req.body.name.toLowerCase()
+    req.body.chromadb = req.body.name.toLowerCase().replace(/ /g, '_')
+    req.body.images = await req.imageService.resizeImages(req.body.images)
+
+    let data = await Assistant.findByIdAndUpdate(id, req.body, { new: true })
 
     if (data) {
-      data.id = data._id
-      res.status(200).send({
-        message: 'El elemento ha sido actualizado correctamente.'
-      })
+      data = data.toObject()
+      data.id = data._id.toString()
+      res.status(200).send(data)
     } else {
       res.status(404).send({
         message: `No se puede actualizar el elemento con la id=${id}. Tal vez no se ha encontrado el elemento o el cuerpo de la petición está vacío.`
       })
     }
   } catch (err) {
+    console.log(err)
     res.status(500).send({
       message: 'Algún error ha surgido al actualizar la id=' + id
     })

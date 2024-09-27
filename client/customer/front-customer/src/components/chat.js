@@ -62,6 +62,15 @@ class Chat extends HTMLElement {
           width: 100%;
         }
 
+        *{
+          box-sizing: border-box;
+        }
+
+        img{
+          object-fit: cover;
+          width: 100%;
+        }
+
         .chat{
           align-items: center;
           display: flex;

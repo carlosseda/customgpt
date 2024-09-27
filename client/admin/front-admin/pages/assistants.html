@@ -39,7 +39,8 @@
       endpoint="/api/admin/assistants"
       structure="{
         'tabs': [
-          {'name': 'general', 'label': 'General'}
+          {'name': 'general', 'label': 'General'},
+          {'name': 'images', 'label': 'Imágenes'}
         ],
         'inputs': {
           'general': {
@@ -47,6 +48,7 @@
               {'name': 'id', 'element':'input', 'type': 'hidden'},
               {'name': 'name', 'element':'input', 'type': 'text', 'label': 'Nombre', 'width': 'half-width'},
               {'name': 'assistantEndpoint', 'element':'input', 'type': 'text', 'label': 'Endpoint', 'width': 'half-width'},
+              {'name': 'description', 'element':'textarea', 'label': 'Descripción', 'width': 'full-width'},
               {'element': 'dependants', 'childs': [
                 {
                   'name': 'examples', 
@@ -113,6 +115,34 @@
                   ]
                 }
               ]}
+            ]
+          },
+          'images': {
+            'noLocale': [
+              {'name': 'assistantAvatar', 'element':'input', 'type': 'image', 'label': 'Avatar', 'width': 'one-third-width', 'quantity': 'single', 'imageConfigurations': 
+                {
+                  'thumbnail': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'xs': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'sm': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'md': {
+                    'widthPx': '200',
+                    'heightPx': '200'
+                  },
+                  'lg': {
+                    'widthPx': '200',
+                    'heightPx': '200'
+                  }
+                } 
+              }
             ]
           }
         }

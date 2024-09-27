@@ -4,11 +4,17 @@ module.exports = (mongoose) => {
       name: {
         type: String
       },
+      description: {
+        type: String
+      },
       chromadb: {
         type: String
       },
       assistantEndpoint: {
         type: String
+      },
+      images: {
+        type: mongoose.Schema.Types.Mixed
       },
       examples: [{
         type: mongoose.Schema.Types.Mixed

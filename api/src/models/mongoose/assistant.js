@@ -4,6 +4,9 @@ module.exports = (mongoose) => {
       name: {
         type: String
       },
+      shortDescription: {
+        type: String
+      },
       description: {
         type: String
       },

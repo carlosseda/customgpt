@@ -18,10 +18,11 @@ class Examples extends HTMLElement {
       if (currentState.chat.assistant && !isEqual(this.assistant, currentState.chat.assistant) && currentState.chat.assistant.examples.length > 0) {
         this.assistant = currentState.chat.assistant
         this.render()
+        this.shadow.querySelector('.examples').classList.add('active')
       }
 
       if (currentState.chat.prompt) {
-        this.shadow.querySelector('.examples').innerHTML = ''
+        this.shadow.querySelector('.examples').classList.remove('active')
       }
     })
   }
@@ -33,16 +34,70 @@ class Examples extends HTMLElement {
         :host{
           width: 100%;
         }
-        
+
+        img{
+          object-fit: cover;
+          width: 100%;
+        }
+
         .examples{
+          display: none;
+        }
+
+        .examples.active{
+          align-items: center;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          height: 90vh;
+          justify-content: center;
+          width: 100%;
+        }
+
+        .examples-logo{
+          align-items: center;
+          background-color: hsl(0, 0%, 100%);
+          border-radius: 50%;
+          display: flex; 
+          height: 4rem;
+          justify-content: center;
+          overflow: hidden;
+          position: relative;
+          width: 4rem;
+        }
+
+        .examples-logo svg{
+          color: hsl(0, 0%, 0%);
+          height: 2.5rem;
+          width: 2.5rem;
+        }
+
+        .examples-title h1{
+          color: hsl(0, 0%, 100%);
+          font-family: "SoehneBuch", sans-serif;
+          font-size: 1.5rem;
+          margin: 1rem 0;
+        }
+
+        .examples-description p{
+          color: hsla(0, 0%, 100%);
+          font-family: 'SoehneBuch', Arial;
+          font-size: 1rem;
+          margin: 0;
+          text-align: center;
+        }
+        
+        .examples-container{
           display: grid;
-          grid-template-columns: repeat(2 , minmax(300px,1fr));
+          grid-template-columns: repeat(4 , minmax(250px,1fr));
           gap: 0.5rem;
           margin-bottom: 1rem;
+          padding: 2rem 0;
         }
 
         .example{
-          border: 1px solid hsl(0, 0%, 40%);
+          background-color: hsl(220, 4%, 20%);
+          border: 1px solid hsl(147, 72%, 46%);
           border-radius: 0.5rem;
           display: flex;
           flex-direction: column;
@@ -53,7 +108,8 @@ class Examples extends HTMLElement {
         }
 
         .example:hover{
-          background-color: hsl(236, 10%, 28%);
+          background-color: hsl(220, 4%, 13%);
+          border: 1px solid hsla(210, 3%, 13%, 0.50);
           cursor: pointer;
         }
 
@@ -65,57 +121,14 @@ class Examples extends HTMLElement {
           margin: 0;
         }
 
-        .example-description p{
-          color: hsl(0, 0%, 100%);
-          font-family: 'SoehneBuch', Arial;
-          font-size: 0.9em;
-          margin: 0;
-          opacity: 0.5;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .example .example-send{
-          align-items: center;
-          background-color: hsla(236, 10%, 28%, 0.911);
-          display: flex;
-          height: 90%;
-          justify-content: center;
-          opacity: 0;
-          position: absolute;
-          right: 0;
-          width: 10%;
-          z-index: 1000;
-        }
-
-        .example:hover .example-send{
-          opacity: 1;
-        }
-
-        .example-send-button{
-          background-color: hsl(235, 11%, 23%);
-          border-radius: 0.3rem;
-          padding: 0.25rem;
-        }
-
-        .example-send-button svg{
-          height: 0.8rem;
-          width: 0.8rem;
-        }
-
-        .example-send-button svg path{
-          fill: white;
-        }
-
-        .example-send-button .tooltiptext{
+        .example .tooltiptext{
           background-color: black;
           border-radius: 0.5rem;
           color: #fff;
           font-family: 'SoehneBuch', sans-serif;
           font-size: 0.8rem;
-          margin-top: -3.5rem;
-          margin-left: -5rem;
+          margin-top: -5rem;
+          margin-left: 5rem;
           opacity: 0;
           padding: 0.5rem 0;
           pointer-events: none; 
@@ -126,7 +139,7 @@ class Examples extends HTMLElement {
           z-index: 1001;
         }
 
-        .example-send-button .tooltiptext::after {
+        .example .tooltiptext::after {
           border-color: rgb(0, 0, 0) transparent transparent transparent;
           border-style: solid;
           border-width: 5px;
@@ -136,7 +149,7 @@ class Examples extends HTMLElement {
           top: 100%;   
         }
 
-        .example-send-button:hover .tooltiptext{
+        .example:hover .tooltiptext{
           opacity: 1;
           visibility: visible;
         }
@@ -148,10 +161,21 @@ class Examples extends HTMLElement {
         }
       </style>
     
-      <section class="examples"></section>
+      <section class="examples">
+        <div class="examples-logo">
+          <img src="${import.meta.env.VITE_API_URL}/api/customer/images/image/${this.assistant.images.md.assistantAvatar.filename}" alt="${this.assistant.images.md.assistantAvatar.alt}" title="${this.assistant.images.md.assistantAvatar.title}">
+        </div>
+        <div class="examples-title">
+          <h1>Bienvenido al asistente de ${this.assistant.name}</h1>
+        </div>
+        <div class="examples-description">
+          <p>${this.assistant.description}</p>
+        </div>
+        <div class="examples-container"></div>
+      </section>
     `
 
-    const examples = this.shadow.querySelector('.examples')
+    const examples = this.shadow.querySelector('.examples-container')
 
     this.assistant.examples.forEach(example => {
       const exampleElement = document.createElement('article')
@@ -164,31 +188,13 @@ class Examples extends HTMLElement {
       const exampleTitleH2 = document.createElement('h2')
       exampleTitleH2.textContent = example.title
 
-      const exampleDescription = document.createElement('div')
-      exampleDescription.classList.add('example-description')
-
-      const exampleDescriptionP = document.createElement('p')
-      exampleDescriptionP.textContent = example.description
-
-      const exampleSend = document.createElement('div')
-      exampleSend.classList.add('example-send')
-
-      const exampleSendButton = document.createElement('div')
-      exampleSendButton.classList.add('example-send-button')
-
       const exampleSendButtonTooltip = document.createElement('span')
       exampleSendButtonTooltip.classList.add('tooltiptext')
       exampleSendButtonTooltip.textContent = 'Haz click para enviar'
 
-      exampleSendButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z" /></svg>'
-
-      exampleSendButton.appendChild(exampleSendButtonTooltip)
-      exampleSend.appendChild(exampleSendButton)
+      exampleElement.appendChild(exampleSendButtonTooltip)
       exampleTitle.appendChild(exampleTitleH2)
-      exampleDescription.appendChild(exampleDescriptionP)
       exampleElement.appendChild(exampleTitle)
-      exampleElement.appendChild(exampleDescription)
-      exampleElement.appendChild(exampleSend)
       examples.appendChild(exampleElement)
     })
 

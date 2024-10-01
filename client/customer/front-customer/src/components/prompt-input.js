@@ -24,6 +24,10 @@ class PromptInput extends HTMLElement {
           this.shadow.querySelector('.stop-button').classList.remove('visible')
         }
       }
+
+      if (currentState.chat.assistant) {
+        this.shadow.querySelector('.prompt-input').classList.add('active')
+      }
     })
 
     this.render()
@@ -39,7 +43,12 @@ class PromptInput extends HTMLElement {
           width: 100%;
         }
 
+        .prompt-input.active{
+          display: block;
+        }
+
         .prompt-input{
+          display: none;
           width: 100%;
         }
 

@@ -89,6 +89,7 @@ exports.findOne = async (req, res) => {
       })
     }
   } catch (err) {
+    console.log(err)
     res.status(500).send({
       message: 'Algún error ha surgido al recuperar la id=' + id
     })

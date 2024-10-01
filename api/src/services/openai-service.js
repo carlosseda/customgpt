@@ -146,9 +146,8 @@ module.exports = class OpenAIService {
   }
 
   async analyzeImages (images, prompt) {
+    const content = [{ type: 'text', text: `${prompt}` }]
 
-    const content = [{  type: 'text', text: `${prompt}`}]
-  
     for (const image of images) {
       content.push({
         type: 'image_url',
@@ -164,7 +163,7 @@ module.exports = class OpenAIService {
       messages: [
         {
           role: 'user',
-          content: content
+          content
         }
       ],
       temperature: 1,

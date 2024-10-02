@@ -1,7 +1,7 @@
 import { store } from '../redux/store.js'
 import { setAssistant, setThread } from '../redux/chat-slice.js'
 
-class Assistants extends HTMLElement {
+class WelcomeAssistants extends HTMLElement {
 
   constructor () {
     super()
@@ -41,15 +41,29 @@ class Assistants extends HTMLElement {
         }
 
         .assistants{
-          padding: 1rem;
+          display: none;
+        }
+
+        .assistants.active{
+          align-items: center;
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          padding: 2rem;
         }
 
         .assistant{
-          border: 1px solid hsla(210, 3%, 13%, 0);
+          background-color: hsl(220, 4%, 20%);
+          border: 1px solid hsl(147, 72%, 46%);
           border-radius: 0.3rem;
-          display: flex;
-          gap: 0.5rem;
-          padding: 0.3rem;
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: 50px 1fr;
+          grid-template-rows: auto auto;
+          grid-template-areas: 
+            "logo title"
+            "description description";
+          padding: 1rem;
         }
 
         .assistant:hover{
@@ -63,10 +77,11 @@ class Assistants extends HTMLElement {
           background-color: hsl(0, 0%, 100%);
           border-radius: 50%;
           display: flex;
-          height: 1.8rem;
+          grid-area: logo;
+          height: 50px;
           justify-content: center;
           overflow: hidden;
-          width: 1.8rem;
+          width: 50px;
         }
 
         .assistant-icon svg{
@@ -76,64 +91,28 @@ class Assistants extends HTMLElement {
         .assistant-name{
           align-self: center;
           flex: 1;
+          grid-area: title;
         }
 
         .assistant-name span{
           color: hsl(0, 0%, 100%);
           font-family: 'SoehneBuch', sans-serif; 
-          font-size: 0.8rem;
+          font-size: 1.3rem;
           font-weight: 600;
         }
 
-        .assistant-start{
-          align-self: center;
-          position: relative;
+        .assistant-description{
+          grid-area: description;
         }
 
-        .assistant-start svg{
-          width: 1.2rem;
-        }
-
-        .assistant-start svg path{
-          fill: hsl(0, 0%, 100%);
-        }
-
-        .assistant-start .tooltiptext {
-          background-color: black;
-          border-radius: 0.5rem;
-          color: #fff;
+        .assistant-description span{
+          color: hsl(0, 0%, 100%);
           font-family: 'SoehneBuch', sans-serif;
-          font-size: 0.8rem;
-          margin-top: -0.5rem;
-          margin-left: 3rem;
-          opacity: 0;
-          padding: 0.5rem 0;
-          pointer-events: none; 
-          position: absolute;
-          text-align: center;
-          transition: opacity 0.3s;
-          visibility: hidden;
-          width: 100px;
-          z-index: 1001;
-        }
-
-        .assistant-start .tooltiptext::after {
-          border-color: transparent #000000 transparent transparent;
-          border-style: solid;
-          border-width: 5px;
-          content: " ";
-          left: -10px;
-          position: absolute;
-          top: 35%;
-        }
-
-        .assistant-start:hover .tooltiptext {
-          opacity: 1;
-          visibility: visible;
+          font-size: 1rem;
         }
       </style>
-    
-      <section class="assistants"></section>
+
+      <section class="assistants active"></section>
     `
 
     const assistants = this.shadow.querySelector('.assistants')
@@ -147,9 +126,9 @@ class Assistants extends HTMLElement {
       assistantIcon.classList.add('assistant-icon')
 
       const assistantImage = document.createElement('img')
-      assistantImage.src = `${import.meta.env.VITE_API_URL}/api/customer/images/image/${assistant.images.xs.assistantAvatar.filename}`
-      assistantImage.alt = assistant.images.thumbnail.assistantAvatar.alt
-      assistantImage.title = assistant.images.thumbnail.assistantAvatar.title
+      assistantImage.src = `${import.meta.env.VITE_API_URL}/api/customer/images/image/${assistant.images.md.assistantAvatar.filename}`
+      assistantImage.alt = assistant.images.md.assistantAvatar.alt
+      assistantImage.title = assistant.images.md.assistantAvatar.title
       assistantIcon.appendChild(assistantImage)
 
       const assistantName = document.createElement('div')
@@ -158,17 +137,15 @@ class Assistants extends HTMLElement {
       name.textContent = assistant.name
       assistantName.appendChild(name)
 
-      const assistantStart = document.createElement('div')
-      assistantStart.classList.add('assistant-start')
-
-      const assistantStartTooltip = document.createElement('span')
-      assistantStartTooltip.classList.add('tooltiptext')
-      assistantStartTooltip.innerHTML = 'Nuevo chat'
-      assistantStart.appendChild(assistantStartTooltip)
+      const assistantDescription = document.createElement('div')
+      assistantDescription.classList.add('assistant-description')
+      const description = document.createElement('span')
+      description.textContent = assistant.shortDescription
+      assistantDescription.appendChild(description)
 
       assistantElement.appendChild(assistantIcon)
       assistantElement.appendChild(assistantName)
-      assistantElement.appendChild(assistantStart)
+      assistantElement.appendChild(assistantDescription)
       assistants.appendChild(assistantElement)
     });
 
@@ -184,10 +161,11 @@ class Assistants extends HTMLElement {
           }
         })
 
-        store.dispatch(setThread(null))      
+        store.dispatch(setThread(null))
+        this.shadow.querySelector('.assistants').classList.remove('active')      
       }
     })
   }
 }
 
-customElements.define('assistants-component', Assistants)
+customElements.define('welcome-assistants-component', WelcomeAssistants)

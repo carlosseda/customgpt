@@ -1,3 +1,6 @@
+import { store } from '../redux/store.js'
+import { setUser } from '../redux/chat-slice.js'
+
 class User extends HTMLElement {
 
   constructor () {
@@ -6,8 +9,20 @@ class User extends HTMLElement {
   }
 
   connectedCallback () {
-    sessionStorage.setItem('customerId', '1')
-    this.render()
+    this.loadData().then(() => this.render())
+  }
+
+  async loadData () {
+    const url = `${import.meta.env.VITE_API_URL}/api/customer/customer-staff/findOne`
+
+    try {
+      const response = await fetch(url)
+      this.data = await response.json()
+      store.dispatch(setUser(this.data))
+
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   render () {
@@ -56,10 +71,10 @@ class User extends HTMLElement {
     
       <section class="user">
         <div class="user-logo">
-          <img src="images/user-avatar.png" alt="avatar de usuario">
+          <img src="${import.meta.env.VITE_API_URL}/api/customer/images/image/${this.data.images.xs.customerStaffAvatar.filename}" alt="${this.data.images.xs.customerStaffAvatar.alt}" title="${this.data.images.xs.customerStaffAvatar.title}">
         </div>
         <div class="user-name">
-          <h3>Carlos Seda</h3>
+          <h3>${this.data.name} ${this.data.surname}</h3>
         </div>
       </section>
     `

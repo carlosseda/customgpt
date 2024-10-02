@@ -9,6 +9,7 @@ class Chat extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' })
     this.socket = new WebSocket(import.meta.env.VITE_WS_URL);
     this.unsubscribe = null
+    this.user = null
     this.assistant = null
     this.lastPrompt = null
     this.scroll = false
@@ -19,6 +20,10 @@ class Chat extends HTMLElement {
   connectedCallback () {
     this.unsubscribe = store.subscribe(() => {
       const currentState = store.getState()
+
+      if (currentState.chat.user && !isEqual(this.user, currentState.chat.user)) {
+        this.user = currentState.chat.user
+      }
 
       if (currentState.chat.assistant && !isEqual(this.assistant, currentState.chat.assistant)) {
         this.assistant = currentState.chat.assistant
@@ -310,7 +315,7 @@ class Chat extends HTMLElement {
     messageContainer.classList.add('message')
     messageContainer.classList.add('user')
 
-    userAvatar.src = "images/user-avatar.png"
+    userAvatar.src = `${import.meta.env.VITE_API_URL}/api/customer/images/image/${this.user.images.xs.customerStaffAvatar.filename}`
     userName.textContent = "Tú"
     prompt.textContent = newPrompt
 
@@ -348,7 +353,7 @@ class Chat extends HTMLElement {
     stateBubble.classList.add('active')
     stateMessage.classList.add('state-message')
 
-    modelAvatar.src = "images/user-avatar.png"
+    modelAvatar.src = `${import.meta.env.VITE_API_URL}/api/customer/images/image/${this.assistant.images.xs.assistantAvatar.filename}`
     modelName.textContent = this.assistant.name
 
     contents.appendChild(state)

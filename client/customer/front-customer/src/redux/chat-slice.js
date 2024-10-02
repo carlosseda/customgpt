@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 export const chatSlice = createSlice({
   name: 'chat',
   initialState: {
+    user: null,
     assistant: null,
     threadId: null,
     prompt: null,
@@ -10,6 +11,9 @@ export const chatSlice = createSlice({
     images: null
   },
   reducers: {
+    setUser: (state, action) => {
+      state.user = action.payload
+    },
     setAssistant: (state, action) => {
       state.assistant = action.payload
     },
@@ -28,6 +32,6 @@ export const chatSlice = createSlice({
   }
 })
 
-export const { setAssistant, newPrompt, setResponseState, setThread, setImages } = chatSlice.actions
+export const { setUser, setAssistant, newPrompt, setResponseState, setThread, setImages } = chatSlice.actions
 
 export default chatSlice.reducer

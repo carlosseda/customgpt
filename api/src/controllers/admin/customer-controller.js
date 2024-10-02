@@ -1,9 +1,14 @@
 const sequelizeDb = require('../../models/sequelize')
+const mongooseDb = require('../../models/mongoose')
 const Customer = sequelizeDb.Customer
+const CustomerMongoDB = mongooseDb.Customer
 const Op = sequelizeDb.Sequelize.Op
 
 exports.create = (req, res) => {
   Customer.create(req.body).then(async data => {
+    req.body.images = await req.imageService.resizeImages(req.body.images)
+    req.body.customerId = data.id
+    await CustomerMongoDB.create(req.body)
     res.status(200).send(data)
   }).catch(err => {
     res.status(500).send({
@@ -54,8 +59,13 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
   const id = req.params.id
 
-  Customer.findByPk(id).then(data => {
+  Customer.findByPk(id).then(async data => {
     if (data) {
+      const mongoData = await CustomerMongoDB.findOne({ customerId: id })
+
+      data.dataValues.welcomeMessage = mongoData.welcomeMessage
+      data.dataValues.images = mongoData.images ? mongoData.images.adminImages : []
+
       res.status(200).send(data)
     } else {
       res.status(404).send({
@@ -63,6 +73,7 @@ exports.findOne = (req, res) => {
       })
     }
   }).catch(_ => {
+    console.log(_)
     res.status(500).send({
       message: 'Algún error ha surgido al recuperar la id=' + id
     })
@@ -76,6 +87,10 @@ exports.update = (req, res) => {
     where: { id }
   }).then(async ([numberRowsAffected]) => {
     if (numberRowsAffected === 1) {
+
+      req.body.images = await req.imageService.resizeImages(req.body.images)
+      await CustomerMongoDB.findOneAndUpdate({ customerId: id }, req.body)
+
       res.status(200).send({
         message: 'El elemento ha sido actualizado correctamente.'
       })
@@ -96,8 +111,12 @@ exports.delete = (req, res) => {
 
   Customer.destroy({
     where: { id }
-  }).then(([numberRowsAffected]) => {
+  }).then(async ([numberRowsAffected]) => {
+
     if (numberRowsAffected === 1) {
+
+      await CustomerMongoDB.findOneAndUpdate({ customerId: id }, { deletedAt: new Date() })
+
       res.status(200).send({
         message: 'El elemento ha sido borrado correctamente'
       })
@@ -107,6 +126,7 @@ exports.delete = (req, res) => {
       })
     }
   }).catch(_ => {
+    console.log(_)
     res.status(500).send({
       message: 'Algún error ha surgido al borrar la id=' + id
     })
@@ -129,7 +149,6 @@ exports.getCustomers = async (req, res) => {
 
     res.status(200).send(response)
   } catch (err) {
-    console.log(err)
     res.status(500).send({
       message: err.message || 'Algún error ha surgido al recuperar los datos.'
     })

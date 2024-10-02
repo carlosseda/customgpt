@@ -1,11 +1,17 @@
 const sequelizeDb = require('../../models/sequelize')
+const mongooseDb = require('../../models/mongoose')
 const CustomerStaff = sequelizeDb.CustomerStaff
+const CustomerStaffMongoDB = mongooseDb.CustomerStaff
 const Op = sequelizeDb.Sequelize.Op
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   req.body.customerId = req.body.parentId
+  req.body.images = await req.imageService.resizeImages(req.body.images)
 
-  CustomerStaff.create(req.body).then(data => {
+  CustomerStaff.create(req.body).then(async data => {
+    req.body.customerStaffId = data.id
+    await CustomerStaffMongoDB.create(req.body)
+
     res.status(200).send(data)
   }).catch(err => {
     console.log(err)
@@ -69,8 +75,11 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
   const id = req.params.id
 
-  CustomerStaff.findByPk(id).then(data => {
+  CustomerStaff.findByPk(id).then(async data => {
     if (data) {
+      const mongoData = await CustomerStaffMongoDB.findOne({ customerStaffId: id })
+      data.dataValues.images = mongoData.images ? mongoData.images.adminImages : []
+
       res.status(200).send(data)
     } else {
       res.status(404).send({
@@ -89,8 +98,12 @@ exports.update = (req, res) => {
 
   CustomerStaff.update(req.body, {
     where: { id }
-  }).then(([numberRowsAffected]) => {
+  }).then(async ([numberRowsAffected]) => {
     if (numberRowsAffected === 1) {
+
+      req.body.images = await req.imageService.resizeImages(req.body.images)
+      await CustomerStaffMongoDB.findOneAndUpdate({ customerStaffId: id }, req.body)
+
       res.status(200).send({
         message: 'El elemento ha sido actualizado correctamente.'
       })
@@ -111,8 +124,11 @@ exports.delete = (req, res) => {
 
   CustomerStaff.destroy({
     where: { id }
-  }).then(([numberRowsAffected]) => {
+  }).then(async ([numberRowsAffected]) => {
     if (numberRowsAffected === 1) {
+
+      await CustomerStaffMongoDB.findOneAndUpdate({ customerStaffId: id }, { deletedAt: new Date() })
+      
       res.status(200).send({
         message: 'El elemento ha sido borrado correctamente'
       })

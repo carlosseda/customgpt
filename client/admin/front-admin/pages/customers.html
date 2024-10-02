@@ -39,7 +39,8 @@
       endpoint="/api/admin/customers"
       structure="{
         'tabs': [
-          {'name': 'general', 'label': 'General'}
+          {'name': 'general', 'label': 'General'},
+          {'name': 'images', 'label': 'Imágenes'}
         ],
         'inputs': {
           'general': {
@@ -47,6 +48,7 @@
               {'name': 'id', 'element':'input', 'type': 'hidden'},
               {'name': 'commercialCategoryId', 'element': 'select', 'label': 'Categoria', 'width': 'half-width', 'endpoint': '/api/admin/commercial-categories/get-categories'},
               {'name': 'commercialName', 'element':'input', 'type': 'text', 'label': 'Nombre comercial', 'width': 'half-width'},
+              {'name': 'welcomeMessage', 'element':'input', 'type': 'text', 'label': 'Mensaje de Bienvenida', 'width': 'full-width'},
               {'element': 'dependants', 'childs': [
                 {
                   'name': 'staff', 
@@ -56,7 +58,8 @@
                     {'element': 'subform', 'width': 'half-width', 'endpoint': '/api/admin/customer-staffs', 'structure': 
                       {
                         'tabs': [
-                          {'name': 'general', 'label': 'General'}
+                          {'name': 'general', 'label': 'General'},
+                          {'name': 'images', 'label': 'Imágenes'}
                         ],
                         'inputs': {
                           'general': {
@@ -67,6 +70,34 @@
                               {'name': 'name', 'element':'input', 'type': 'text', 'label': 'Nombre del encargado', 'width': 'half-width'},
                               {'name': 'surname', 'element':'input', 'type': 'text', 'label': 'Apellidos del encargado', 'width': 'half-width'},
                               {'name': 'email', 'element':'input', 'type': 'email', 'label': 'Email', 'width': 'half-width'}
+                            ]
+                          },
+                          'images': {
+                            'noLocale': [
+                              {'name': 'customerStaffAvatar', 'element':'input', 'type': 'image', 'label': 'Avatar', 'width': 'one-third-width', 'quantity': 'single', 'imageConfigurations': 
+                                {
+                                  'thumbnail': {
+                                    'widthPx': '100',
+                                    'heightPx': '100'
+                                  },
+                                  'xs': {
+                                    'widthPx': '100',
+                                    'heightPx': '100'
+                                  },
+                                  'sm': {
+                                    'widthPx': '100',
+                                    'heightPx': '100'
+                                  },
+                                  'md': {
+                                    'widthPx': '200',
+                                    'heightPx': '200'
+                                  },
+                                  'lg': {
+                                    'widthPx': '200',
+                                    'heightPx': '200'
+                                  }
+                                } 
+                              }
                             ]
                           }
                         }
@@ -86,6 +117,34 @@
                   ]
                 }
               ]}
+            ]
+          },
+          'images': {
+            'noLocale': [
+              {'name': 'logo', 'element':'input', 'type': 'image', 'label': 'Logo', 'width': 'one-third-width', 'quantity': 'single', 'imageConfigurations': 
+                {
+                  'thumbnail': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'xs': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'sm': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'md': {
+                    'widthPx': '200',
+                    'heightPx': '200'
+                  },
+                  'lg': {
+                    'widthPx': '200',
+                    'heightPx': '200'
+                  }
+                } 
+              }
             ]
           }
         }

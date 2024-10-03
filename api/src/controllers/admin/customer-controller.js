@@ -87,7 +87,6 @@ exports.update = (req, res) => {
     where: { id }
   }).then(async ([numberRowsAffected]) => {
     if (numberRowsAffected === 1) {
-
       req.body.images = await req.imageService.resizeImages(req.body.images)
       await CustomerMongoDB.findOneAndUpdate({ customerId: id }, req.body)
 
@@ -111,11 +110,10 @@ exports.delete = (req, res) => {
 
   Customer.destroy({
     where: { id }
-  }).then(async ([numberRowsAffected]) => {
-
+  }).then(async (numberRowsAffected) => {
     if (numberRowsAffected === 1) {
-
       await CustomerMongoDB.findOneAndUpdate({ customerId: id }, { deletedAt: new Date() })
+      req.redisClient.publish('delete-customer', JSON.stringify({ id }))
 
       res.status(200).send({
         message: 'El elemento ha sido borrado correctamente'

@@ -59,7 +59,8 @@
                       {
                         'tabs': [
                           {'name': 'general', 'label': 'General'},
-                          {'name': 'images', 'label': 'Imágenes'}
+                          {'name': 'images', 'label': 'Imágenes'},
+                          {'name': 'assistants', 'label': 'Asistentes asignados'}
                         ],
                         'inputs': {
                           'general': {
@@ -98,6 +99,11 @@
                                   }
                                 } 
                               }
+                            ]
+                          },
+                          'assistants': {
+                            'noLocale': [
+                              {'name': 'assistants', 'element': 'input', 'type':'checkbox', 'label': 'Asistentes', 'width': 'full-width', 'endpoint': '/api/admin/assistant-customers/get-assistants', 'parent-filter': ['id']}
                             ]
                           }
                         }

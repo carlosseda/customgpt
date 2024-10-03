@@ -820,7 +820,7 @@ class Form extends HTMLElement {
 
         const defaultOption = document.createElement('option')
         defaultOption.value = ''
-        defaultOption.innerText = 'Selecciona una opción'
+        defaultOption.innerText = formElement.placeholder ?? 'Selecciona una opción'
         select.append(defaultOption)
 
         formElement.options.forEach(option => {

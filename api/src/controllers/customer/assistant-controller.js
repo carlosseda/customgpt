@@ -8,8 +8,12 @@ const path = require('path')
 const { broadcast } = require('../../services/websocket-service')
 
 exports.findAll = async (req, res) => {
-  const whereStatement = {}
-  whereStatement.deletedAt = { $exists: false }
+  const { assistants } = req.body
+
+  const whereStatement = {
+    deletedAt: { $exists: false },
+    _id: { $in: assistants }
+  }
 
   try {
     const result = await Assistant.find(whereStatement)

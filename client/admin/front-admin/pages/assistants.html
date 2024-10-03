@@ -40,7 +40,10 @@
       structure="{
         'tabs': [
           {'name': 'general', 'label': 'General'},
-          {'name': 'images', 'label': 'Imágenes'}
+          {'name': 'images', 'label': 'Imágenes'},
+          {'name': 'categories', 'label': 'Categorías de clasificación', 'dependant': 'true'},
+          {'name': 'examples', 'label': 'Ejemplos de prompt', 'dependant': 'true'},
+          {'name': 'customers', 'label': 'Clientes', 'dependant': 'true'}
         ],
         'inputs': {
           'general': {
@@ -49,40 +52,39 @@
               {'name': 'name', 'element':'input', 'type': 'text', 'label': 'Nombre', 'width': 'half-width'},
               {'name': 'assistantEndpoint', 'element':'input', 'type': 'text', 'label': 'Endpoint', 'width': 'half-width'},
               {'name': 'shortDescription', 'element':'input', 'type': 'text', 'label': 'Descripción corta', 'width': 'full-width'},
-              {'name': 'description', 'element':'textarea', 'label': 'Descripción', 'width': 'full-width'},
-              {'element': 'dependants', 'childs': [
+              {'name': 'description', 'element':'textarea', 'label': 'Descripción', 'width': 'full-width'}       
+            ]
+          },
+          'images': {
+            'noLocale': [
+              {'name': 'assistantAvatar', 'element':'input', 'type': 'image', 'label': 'Avatar', 'width': 'one-third-width', 'quantity': 'single', 'imageConfigurations': 
                 {
-                  'name': 'examples', 
-                  'label': 'Mensajes de ejemplo',
-                  'locale': false,
-                  'structure': [
-                    {'element': 'subform', 'width': 'half-width', 'endpoint': '/api/admin/assistant-examples', 'structure': 
-                      {
-                        'tabs': [
-                          {'name': 'general', 'label': 'General'}
-                        ],
-                        'inputs': {
-                          'general': {
-                            'noLocale': [
-                              {'name': 'id', 'element':'input', 'type': 'hidden'},
-                              {'name': 'title', 'element':'input', 'type': 'text', 'label': 'Título', 'width': 'full-width'},
-                              {'name': 'prompt', 'element':'textarea', 'label': 'Prompt', 'width': 'full-width'}
-                            ]
-                          }
-                        }
-                      }
-                    },
-                    {'element': 'subtable', 'width': 'half-width', 'endpoint': '/api/admin/assistant-examples', 'structure': 
-                      {
-                        'headers': [
-                          {'label': 'Título', 'field': 'title'}
-                        ],
-                        'recordButtons': ['edit', 'remove']
-                      }
-                    }
-                  ]
-                }
-              ]},
+                  'thumbnail': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'xs': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'sm': {
+                    'widthPx': '100',
+                    'heightPx': '100'
+                  },
+                  'md': {
+                    'widthPx': '200',
+                    'heightPx': '200'
+                  },
+                  'lg': {
+                    'widthPx': '200',
+                    'heightPx': '200'
+                  }
+                } 
+              }
+            ]
+          },
+          'categories': {
+            'noLocale': [
               {'element': 'dependants', 'childs': [
                 {
                   'name': 'categories', 
@@ -117,32 +119,77 @@
               ]}
             ]
           },
-          'images': {
+          'examples': {
             'noLocale': [
-              {'name': 'assistantAvatar', 'element':'input', 'type': 'image', 'label': 'Avatar', 'width': 'one-third-width', 'quantity': 'single', 'imageConfigurations': 
+              {'element': 'dependants', 'childs': [
                 {
-                  'thumbnail': {
-                    'widthPx': '100',
-                    'heightPx': '100'
-                  },
-                  'xs': {
-                    'widthPx': '100',
-                    'heightPx': '100'
-                  },
-                  'sm': {
-                    'widthPx': '100',
-                    'heightPx': '100'
-                  },
-                  'md': {
-                    'widthPx': '200',
-                    'heightPx': '200'
-                  },
-                  'lg': {
-                    'widthPx': '200',
-                    'heightPx': '200'
-                  }
-                } 
-              }
+                  'name': 'examples', 
+                  'label': 'Mensajes de ejemplo',
+                  'locale': false,
+                  'structure': [
+                    {'element': 'subform', 'width': 'half-width', 'endpoint': '/api/admin/assistant-examples', 'structure': 
+                      {
+                        'tabs': [
+                          {'name': 'general', 'label': 'General'}
+                        ],
+                        'inputs': {
+                          'general': {
+                            'noLocale': [
+                              {'name': 'id', 'element':'input', 'type': 'hidden'},
+                              {'name': 'title', 'element':'input', 'type': 'text', 'label': 'Título', 'width': 'full-width'},
+                              {'name': 'prompt', 'element':'textarea', 'label': 'Prompt', 'width': 'full-width'}
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {'element': 'subtable', 'width': 'half-width', 'endpoint': '/api/admin/assistant-examples', 'structure': 
+                      {
+                        'headers': [
+                          {'label': 'Título', 'field': 'title'}
+                        ],
+                        'recordButtons': ['edit', 'remove']
+                      }
+                    }
+                  ]
+                }
+              ]}
+            ]
+          },
+          'customers': {
+            'noLocale': [
+              {'element': 'dependants', 'childs': [
+                {
+                  'name': 'customers', 
+                  'label': 'Disponible para ser utilizado por los siguientes clientes',
+                  'locale': false,
+                  'structure': [
+                    {'element': 'subform', 'width': 'half-width', 'endpoint': '/api/admin/assistant-customers', 'structure': 
+                      {
+                        'tabs': [
+                          {'name': 'general', 'label': 'General'}
+                        ],
+                        'inputs': {
+                          'general': {
+                            'noLocale': [
+                              {'name': 'id', 'element':'input', 'type': 'hidden'},
+                              {'name': 'customerId', 'element': 'select', 'label': 'Disponible para', 'width': 'full-width', 'placeholder': 'Elija una opción', 'endpoint': '/api/admin/customers/get-customers'}
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {'element': 'subtable', 'width': 'half-width', 'endpoint': '/api/admin/assistant-customers', 'structure': 
+                      {
+                        'headers': [
+                          {'label': 'Nombre', 'field': 'name'}
+                        ],
+                        'recordButtons': ['edit', 'remove']
+                      }
+                    }
+                  ]
+                }
+              ]}
             ]
           }
         }

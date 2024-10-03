@@ -22,6 +22,9 @@ module.exports = (mongoose) => {
       language: {
         type: String
       },
+      assistants: {
+        type: Array
+      },
       images: {
         type: mongoose.Schema.Types.Mixed
       },

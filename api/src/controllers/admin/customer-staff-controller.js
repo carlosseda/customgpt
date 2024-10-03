@@ -14,7 +14,6 @@ exports.create = async (req, res) => {
 
     res.status(200).send(data)
   }).catch(err => {
-    console.log(err)
     res.status(500).send({
       message: err.errors || 'Algún error ha surgido al insertar el dato.'
     })
@@ -100,7 +99,6 @@ exports.update = (req, res) => {
     where: { id }
   }).then(async ([numberRowsAffected]) => {
     if (numberRowsAffected === 1) {
-
       req.body.images = await req.imageService.resizeImages(req.body.images)
       await CustomerStaffMongoDB.findOneAndUpdate({ customerStaffId: id }, req.body)
 
@@ -126,9 +124,8 @@ exports.delete = (req, res) => {
     where: { id }
   }).then(async ([numberRowsAffected]) => {
     if (numberRowsAffected === 1) {
-
       await CustomerStaffMongoDB.findOneAndUpdate({ customerStaffId: id }, { deletedAt: new Date() })
-      
+
       res.status(200).send({
         message: 'El elemento ha sido borrado correctamente'
       })

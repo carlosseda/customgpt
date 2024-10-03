@@ -20,10 +20,27 @@ module.exports = (mongoose) => {
         type: mongoose.Schema.Types.Mixed
       },
       examples: [{
-        type: mongoose.Schema.Types.Mixed
+        id: { type: String },
+        title: { type: String },
+        prompt: { type: String },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+        deletedAt: { type: Date }
       }],
       categories: [{
-        type: mongoose.Schema.Types.Mixed
+        id: { type: String },
+        name: { type: String },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+        deletedAt: { type: Date }
+      }],
+      customers: [{
+        id: { type: String },
+        customerId: { type: String },
+        name: { type: String },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+        deletedAt: { type: Date }
       }],
       deletedAt: Date
     },

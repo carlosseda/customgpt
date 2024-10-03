@@ -74,7 +74,7 @@ exports.findOne = async (req, res) => {
 
   try {
     const data = await Assistant.findById(id).lean().exec()
-    data.images = data.images.adminImages
+    data.images = data.images ? data.images.adminImages : []
 
     if (data) {
       data.id = data._id
@@ -130,6 +130,8 @@ exports.delete = async (req, res) => {
     const data = await Assistant.findByIdAndUpdate(id, { deletedAt: new Date() })
 
     if (data) {
+      req.redisClient.publish('delete-assistant', JSON.stringify(data))
+
       res.status(200).send({
         message: 'El elemento ha sido borrado correctamente.'
       })
@@ -163,7 +165,6 @@ exports.scrapping = async (req, res) => {
       message: 'El proceso de scrapping ha finalizado correctamente.'
     })
   } catch (err) {
-    console.log(err)
     res.status(500).send({
       message: 'Algún error ha surgido al recuperar la id=' + id
     })

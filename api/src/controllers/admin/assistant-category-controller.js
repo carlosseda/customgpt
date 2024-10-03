@@ -6,9 +6,6 @@ exports.create = async (req, res) => {
   try {
     const category = Object.keys(req.body)
     req.body.id = uuid.v4()
-    req.body.createdAt = new Date()
-    req.body.updatedAt = new Date()
-    req.body.deletedAt = null
 
     await Assistant.findByIdAndUpdate(req.body.parentId, {
       $push: {

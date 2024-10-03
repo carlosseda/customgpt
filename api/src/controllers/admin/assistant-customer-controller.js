@@ -1,20 +1,24 @@
 const uuid = require('uuid')
 const mongooseDb = require('../../models/mongoose')
+const sequelizeDb = require('../../models/sequelize')
 const Assistant = mongooseDb.Assistant
+const Customer = sequelizeDb.Customer
 
 exports.create = async (req, res) => {
   try {
-    const example = Object.keys(req.body)
+    const data = await Customer.findByPk(req.body.customerId)
+
+    const customer = Object.keys(req.body)
     req.body.id = uuid.v4()
-    req.body.deletedAt = null
+    req.body.name = data.commercialName
 
     await Assistant.findByIdAndUpdate(req.body.parentId, {
       $push: {
-        examples: req.body
+        customers: req.body
       }
     })
 
-    res.status(200).send(example)
+    res.status(200).send(customer)
   } catch (err) {
     res.status(500).send({
       message: err.errors || 'Algún error ha surgido al insertar el dato.'
@@ -34,8 +38,8 @@ exports.findAll = async (req, res) => {
       .exec()
 
     const response = {
-      rows: (result.examples)
-        ? result.examples.filter(example => !example.deletedAt).map(row => ({
+      rows: (result.customers)
+        ? result.customers.filter(customer => !customer.deletedAt).map(row => ({
           ...row
         }))
         : []
@@ -62,7 +66,7 @@ exports.findOne = async (req, res) => {
       .lean()
       .exec()
 
-    let data = result.examples.find(example => example.id === id)
+    let data = result.customers.find(customer => customer.id === id)
 
     if (data) {
       const newData = {}
@@ -100,18 +104,18 @@ exports.update = async (req, res) => {
       .lean()
       .exec()
 
-    const data = result.examples.find(example => example.id === id)
+    const data = result.customers.find(customer => customer.id === id)
 
     if (data) {
       const update = {}
 
       for (const key in req.body) {
         if (key === 'id') continue
-        update[`examples.$.${key}`] = req.body[key]
+        update[`customers.$.${key}`] = req.body[key]
       }
 
       await Assistant.updateOne(
-        { _id: req.body.parentId, 'examples.id': id },
+        { _id: req.body.parentId, 'customers.id': id },
         { $set: update }
       )
 
@@ -142,12 +146,12 @@ exports.delete = async (req, res) => {
       .lean()
       .exec()
 
-    const data = result.examples.find(example => example.id === id)
+    const data = result.customers.find(customer => customer.id === id)
 
     if (data) {
       await Assistant.updateOne(
-        { _id: req.query.parent, 'examples.id': id },
-        { $set: { 'examples.$.deletedAt': new Date() } }
+        { _id: req.query.parent, 'customers.id': id },
+        { $set: { 'customers.$.deletedAt': new Date() } }
       )
 
       res.status(200).send({
@@ -161,6 +165,36 @@ exports.delete = async (req, res) => {
   } catch (err) {
     res.status(500).send({
       message: 'Algún error ha surgido al borrar la id=' + id
+    })
+  }
+}
+
+exports.getAssistants = async (req, res) => {
+  const customerId = req.query.id
+
+  try {
+    const whereStatement = {
+      deletedAt: { $exists: false },
+      customers: {
+        $elemMatch: {
+          customerId
+        }
+      }
+    }
+
+    const result = await Assistant.find(whereStatement)
+      .lean()
+      .exec()
+
+    const response = result.map(element => ({
+      label: element.name,
+      value: element._id
+    }))
+
+    res.status(200).send(response)
+  } catch (err) {
+    res.status(500).send({
+      message: 'Algún error ha surgido al recuperar los datos.'
     })
   }
 }

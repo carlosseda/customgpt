@@ -6,18 +6,34 @@ class Assistants extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
+    this.unsubscribe = null
     this.data = []
+    this.assistants = []
   }
 
   connectedCallback () {
-    this.loadData().then(() => this.render())
+    this.unsubscribe = store.subscribe(() => {
+      const currentState = store.getState()
+
+      if (currentState.chat.user) {
+        this.assistants = currentState.chat.user.assistants
+        this.loadData().then(() => this.render())
+      }
+    })
   }
 
   async loadData () {
     const url = `${import.meta.env.VITE_API_URL}/api/customer/assistants`
 
     try {
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ assistants: this.assistants })
+      })
+      
       this.data = await response.json()
 
     } catch (error) {

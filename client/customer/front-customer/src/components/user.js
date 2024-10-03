@@ -8,7 +8,7 @@ class User extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' })
   }
 
-  connectedCallback () {
+  connectedCallback () {    
     this.loadData().then(() => this.render())
   }
 
@@ -19,7 +19,6 @@ class User extends HTMLElement {
       const response = await fetch(url)
       this.data = await response.json()
       store.dispatch(setUser(this.data))
-
     } catch (error) {
       console.log(error)
     }

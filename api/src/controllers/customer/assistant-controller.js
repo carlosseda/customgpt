@@ -6,6 +6,7 @@ const chromaClient = new ChromaClient()
 const fs = require('fs')
 const path = require('path')
 const { broadcast } = require('../../services/websocket-service')
+const { threadId } = require('worker_threads')
 
 exports.findAll = async (req, res) => {
   const { assistants } = req.body
@@ -37,8 +38,18 @@ exports.assistantResponse = async (req, res) => {
     if (req.body.threadId) {
       await openai.setThread(req.body.threadId)
       prompt = req.body.prompt
+
+      broadcast('responseState', {
+        threadId: req.body.threadId,
+        message: 'preparando respuesta...'
+      }, req.session.customer.customerStaffId)
     } else {
-      broadcast('responseState', 'consultando mi fuente de conocimiento...')
+      await openai.createThread()
+
+      broadcast('responseState', {
+        threadId: openai.threadId,
+        message: 'consultando mi fuente de conocimiento...'
+      })
 
       const chromadbCollection = await chromaClient.getOrCreateCollection({ name: req.body.assistant.name })
       const categories = req.body.assistant.categories.map(category => category.name)
@@ -63,10 +74,12 @@ exports.assistantResponse = async (req, res) => {
       })
 
       prompt = `${req.body.prompt} ${JSON.stringify(elements)}`
-      await openai.createThread()
+      broadcast('responseState', {
+        threadId: openai.threadId,
+        message: 'analizando los datos...'
+      })
     }
 
-    broadcast('responseState', 'analizando los datos...')
     await openai.setAssistant(req.body.assistant.assistantEndpoint)
     await openai.createMessage(prompt)
     await openai.runStatus()
@@ -78,7 +91,11 @@ exports.assistantResponse = async (req, res) => {
         const data = JSON.parse(tool.function.arguments)
 
         if (tool.function.name === 'get_images') {
-          broadcast('responseState', 'seleccionando imágenes...')
+          broadcast('responseState', {
+            threadId: openai.threadId,
+            message: 'seleccionando imágenes...'
+          })
+
           const images = await this.getImages(req.body.assistant.name, data.productId)
           toolsOutputs.push({
             tool_call_id: tool.id,
@@ -87,9 +104,18 @@ exports.assistantResponse = async (req, res) => {
         }
 
         if (tool.function.name === 'analyze_images') {
-          broadcast('responseState', 'seleccionando imágenes...')
+          broadcast('responseState', {
+            threadId: openai.threadId,
+            message: 'seleccionando imágenes...'
+          })
+
           const { imagesBuffer, imagesUrl } = await this.analyzeImages(req.body.assistant.name, data.productId)
-          broadcast('responseState', 'analizando imágenes...')
+
+          broadcast('responseState', {
+            threadId: openai.threadId,
+            message: 'analizando imágenes...'
+          })
+
           const answer = await openai.analyzeImages(imagesBuffer, prompt)
 
           const output = {

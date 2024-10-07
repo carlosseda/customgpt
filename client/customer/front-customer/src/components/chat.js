@@ -7,7 +7,7 @@ class Chat extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
-    this.socket = new WebSocket(import.meta.env.VITE_WS_URL);
+    this.socket = new WebSocket(import.meta.env.VITE_WS_URL)
     this.unsubscribe = null
     this.user = null
     this.assistant = null
@@ -43,14 +43,22 @@ class Chat extends HTMLElement {
         this.createUserMessage(currentState.chat.prompt)
         this.createAssistantResponse(currentState.chat.prompt)
       }
+
+      if (!currentState.chat.thread && !currentState.chat.prompt) {
+        this.lastPrompt = null
+        this.shadow.querySelector('.chat').innerHTML = ''
+        this.shadow.querySelector('.chat').classList.remove('active')      
+      }
     })
 
     this.socket.addEventListener('message', event => {
       
-      const { channel, data } = JSON.parse(event.data);
+      const { channel, data } = JSON.parse(event.data)
 
       if (channel === 'responseState') {
-        this.updateState(data);
+        if(data.threadId === this.threadId){
+          this.updateState(data.message)
+        }
       }
     });
 

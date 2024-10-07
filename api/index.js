@@ -1,16 +1,14 @@
 require('dotenv').config()
-const process = require('process')
+const { wss, authenticate } = require('./src/services/websocket-service')
 const express = require('express')
-const session = require('express-session')
-const IORedis = require('ioredis')
-const RedisStore = require('connect-redis').default
 const cors = require('cors')
 const fs = require('fs')
 const app = express()
+const IORedis = require('ioredis')
+const { sessionConfig, redisClient } = require('./src/config/session-config')
 const userAgentMiddleware = require('./src/middlewares/user-agent')
 const exposeServiceMiddleware = require('./src/middlewares/expose-services')
 
-const redisClient = new IORedis(process.env.REDIS_URL)
 const subscriberClient = new IORedis(process.env.REDIS_URL)
 
 const eventsPath = './src/events/'
@@ -24,20 +22,7 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use(session({
-  store: new RedisStore({ client: redisClient }),
-  secret: process.env.JWT_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    domain: new URL(process.env.API_URL).hostname,
-    path: '/',
-    sameSite: 'Lax',
-    maxAge: 1000 * 60 * 3600
-  }
-}))
+app.use(sessionConfig)
 
 app.use(cors({ origin: [process.env.API_URL], credentials: true }))
 
@@ -55,6 +40,20 @@ fs.readdirSync(routePath).forEach(function (file) {
 
 const PORT = process.env.PORT || 8080
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`El servidor está corriendo en el puerto ${PORT}.`)
+})
+
+server.on('upgrade', (req, socket, head) => {
+  authenticate(req, (callback, auth, statusCode, message) => {
+    if (!auth) {
+      socket.write(`HTTP/1.1 ${statusCode} ${message}\r\n\r\n`)
+      socket.destroy()
+      return
+    }
+
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit('connection', ws, req)
+    })
+  })
 })

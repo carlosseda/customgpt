@@ -142,10 +142,6 @@ class Aside extends HTMLElement {
     this.shadow.querySelector('.toggle-aside-button').addEventListener('click', event => {
       this.toggleAside()
     })
-
-    this.shadow.querySelector('.model-start').addEventListener('click', (event) => {
-      document.dispatchEvent(new CustomEvent('newChat'))
-    })
   }
 
   toggleAside = () => {

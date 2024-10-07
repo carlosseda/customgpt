@@ -1,5 +1,5 @@
 import { store } from '../redux/store.js'
-import { setAssistant, setThread } from '../redux/chat-slice.js'
+import { setAssistant, setThread, newPrompt } from '../redux/chat-slice.js'
 
 class Assistants extends HTMLElement {
 
@@ -201,6 +201,7 @@ class Assistants extends HTMLElement {
         })
 
         store.dispatch(setThread(null))      
+        store.dispatch(newPrompt(null))
       }
     })
   }

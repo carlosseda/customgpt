@@ -24,6 +24,10 @@ class Examples extends HTMLElement {
       if (currentState.chat.prompt) {
         this.shadow.querySelector('.examples').classList.remove('active')
       }
+
+      if (this.assistant && !currentState.chat.thread && !currentState.chat.prompt) {
+        this.shadow.querySelector('.examples').classList.add('active')      
+      }
     })
   }
 

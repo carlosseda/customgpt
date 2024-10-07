@@ -1,3 +1,4 @@
+import isEqual from 'lodash-es/isEqual'
 import { store } from '../redux/store.js'
 import { setAssistant, setThread } from '../redux/chat-slice.js'
 
@@ -15,9 +16,13 @@ class WelcomeAssistants extends HTMLElement {
     this.unsubscribe = store.subscribe(() => {
       const currentState = store.getState()
 
-      if (currentState.chat.user) {
+      if (currentState.chat.user && !isEqual(currentState.chat.user.assistants , this.assistants)) {
         this.assistants = currentState.chat.user.assistants
         this.loadData().then(() => this.render())
+      }
+
+      if (currentState.chat.assistant) {
+        this.shadow.querySelector('.assistants').classList.remove('active')      
       }
     })
   }

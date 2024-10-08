@@ -1,6 +1,6 @@
 import isEqual from 'lodash-es/isEqual'
 import { store } from '../redux/store.js'
-import { setAssistant, setThread } from '../redux/chat-slice.js'
+import { setAssistant, setThread, setHistoryPrompts } from '../redux/chat-slice.js'
 
 class WelcomeAssistants extends HTMLElement {
 
@@ -183,6 +183,7 @@ class WelcomeAssistants extends HTMLElement {
         })
 
         store.dispatch(setThread(null))
+        store.dispatch(setHistoryPrompts([]))
         this.shadow.querySelector('.assistants').classList.remove('active')      
       }
     })

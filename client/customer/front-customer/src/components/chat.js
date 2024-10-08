@@ -1,3 +1,4 @@
+import {v4 as uuidv4} from 'uuid'
 import isEqual from 'lodash-es/isEqual'
 import { store } from '../redux/store.js'
 import { setResponseState, setThread, setImages } from '../redux/chat-slice.js'
@@ -15,6 +16,8 @@ class Chat extends HTMLElement {
     this.scroll = false
     this.stopWriting = false
     this.threadId = null
+    this.temporaryThreadId = null
+    this.historyPrompts = []
   }
 
   connectedCallback () {
@@ -30,7 +33,7 @@ class Chat extends HTMLElement {
         this.render()
       }
 
-      if (currentState.chat.threadId && !isEqual(this.threadId, currentState.chat.threadId)) {
+      if (!isEqual(this.threadId, currentState.chat.threadId)) {
         this.threadId = currentState.chat.threadId
       }
 
@@ -41,13 +44,31 @@ class Chat extends HTMLElement {
 
         this.lastPrompt = currentState.chat.prompt
         this.createUserMessage(currentState.chat.prompt)
-        this.createAssistantResponse(currentState.chat.prompt)
+        this.createAssistantResponse()
       }
 
-      if (!currentState.chat.thread && !currentState.chat.prompt) {
+      if (!currentState.chat.threadId && !currentState.chat.prompt) {
         this.lastPrompt = null
         this.shadow.querySelector('.chat').innerHTML = ''
         this.shadow.querySelector('.chat').classList.remove('active')      
+      }
+
+      if (currentState.chat.historyPrompts.length > 0 && !isEqual(this.historyPrompts, currentState.chat.historyPrompts)) {
+        this.historyPrompts = currentState.chat.historyPrompts
+        this.shadow.querySelector('.chat').innerHTML = ''
+
+        this.historyPrompts.forEach(message => {
+          if(message.role === 'user'){
+            this.createUserMessage(message.content[0].text.value)
+          }
+
+          if(message.role === 'assistant'){
+            this.createAssistantResponse(message.content[0].text.value)
+          }
+        })
+
+        this.shadow.querySelector('.chat').classList.add('active');
+        this.shadow.querySelector('.chat').scrollTo({ top: this.shadow.querySelector('.chat').scrollHeight, behavior: 'smooth' });
       }
     })
 
@@ -56,7 +77,7 @@ class Chat extends HTMLElement {
       const { channel, data } = JSON.parse(event.data)
 
       if (channel === 'responseState') {
-        if(data.threadId === this.threadId){
+        if(data.threadId === this.threadId || data.threadId === this.temporaryThreadId){
           this.updateState(data.message)
         }
       }
@@ -90,8 +111,10 @@ class Chat extends HTMLElement {
 
         .chat.active{
           align-items: flex-start;
+          color: hsl(0, 0%, 100%);
           display: flex;
           flex-direction: column;
+          font-family: "SoehneBuch", sans-serif;
           gap: 3rem;
           justify-content: flex-start;
           min-height: 90vh;
@@ -134,20 +157,11 @@ class Chat extends HTMLElement {
         }
 
         .message h3{
-          color: hsl(0, 0%, 100%);
-          font-family: "SoehneBuch", sans-serif;
           font-size: 0.9rem;
           margin: 0;
         }
 
-        .message h4{
-          color: hsl(0, 0%, 100%);
-          font-family: "SoehneBuch", sans-serif;
-        }
-
         .message p{
-          color: hsl(0, 0%, 100%);
-          font-family: "SoehneBuch", sans-serif;
           font-size: 1rem;
           margin: 0;
         }
@@ -168,8 +182,6 @@ class Chat extends HTMLElement {
         }
 
         .message li{
-          color: hsl(0, 0%, 100%);
-          font-family: "SoehneBuch", sans-serif;
           font-size: 1rem;
           margin-left: 1rem;
         }
@@ -203,8 +215,6 @@ class Chat extends HTMLElement {
         }
 
         .state-message{
-          color: hsl(0, 0%, 100%);
-          font-family: "SoehneBuch", sans-serif;
           font-size: 0.9rem;
         }
 
@@ -338,7 +348,7 @@ class Chat extends HTMLElement {
     this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
   }
 
-  createAssistantResponse = async () => {
+  createAssistantResponse = async (message = null) => {
     const promptContainer = document.createElement('div')
     const avatarContainer = document.createElement('div')
     const messageContainer = document.createElement('div')
@@ -349,7 +359,6 @@ class Chat extends HTMLElement {
     const state = document.createElement('div')
     const stateBubble = document.createElement('div')
     const stateMessage = document.createElement('span')
-
 
     promptContainer.classList.add('prompt')
     avatarContainer.classList.add('avatar')
@@ -377,66 +386,80 @@ class Chat extends HTMLElement {
 
     this.shadow.querySelector('.chat').appendChild(promptContainer)
     this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
-    store.dispatch(setResponseState(true))
 
-    try {
-      const result = await fetch(`${import.meta.env.VITE_API_URL}/api/customer/assistants/response`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          threadId: this.threadId ? this.threadId : null,
-          prompt: this.lastPrompt,
-          assistant: this.assistant
-        })
-      })
-
-      const response = await result.json()
-
-      this.shadow.querySelector('.state').remove()
-      await this.writeNewAnswer(response.answer, contents)
+    if (message) {
+      await this.writeNewAnswer(message, contents, false)
+    }else{
+      store.dispatch(setResponseState(true))
 
       if(!this.threadId){
-        store.dispatch(setThread(response.threadId))
+        this.temporaryThreadId = uuidv4()
       }
-    } catch (error) {
-      console.log(error)
+
+      try {
+        const result = await fetch(`${import.meta.env.VITE_API_URL}/api/customer/assistants/response`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            threadId: this.threadId,
+            temporaryThreadId: this.temporaryThreadId,
+            prompt: this.lastPrompt,
+            assistant: this.assistant
+          })
+        })
+
+        const response = await result.json()
+
+        this.shadow.querySelector('.state').remove()
+        store.dispatch(setResponseState(false))      
+        await this.writeNewAnswer(response.answer, contents, true)
+
+        if(!this.threadId){
+          store.dispatch(setThread(response.threadId))
+        }
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 
-  writeNewAnswer = async (answer, container) => {
+  writeNewAnswer = async (answer, container, timeInterval) => {
 
     let i = 0 
     let html = ''
     let tag = ''
 
-    const interval = setInterval(() => {
-      if (i >= answer.length) {
-        clearInterval(interval);
-        return;
-      }
-
-      const char = answer[i++];
-
-      if (char === '<') {
-        tag = char;
-      } else if (tag) {
-        tag += char;
-        if (char === '>') {
-          html += tag;
-          tag = '';
+    if (timeInterval) {
+      const interval = setInterval(() => {
+        if (i >= answer.length) {
+          clearInterval(interval);
+          return;
+        }
+  
+        const char = answer[i++];
+  
+        if (char === '<') {
+          tag = char;
+        } else if (tag) {
+          tag += char;
+          if (char === '>') {
+            html += tag;
+            tag = '';
+            container.innerHTML = html;
+          }
+        } else {
+          html += char;
           container.innerHTML = html;
         }
-      } else {
-        html += char;
-        container.innerHTML = html;
-      }
-
-      this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
-    }, 1); 
-
-    store.dispatch(setResponseState(false))      
+  
+        this.shadow.querySelector('.chat').scrollTo(0, this.shadow.querySelector('.chat').scrollHeight);
+      }, 1); 
+    }else{
+      container.innerHTML = answer
+    }
+    
   }
 
   updateState = (message) => {

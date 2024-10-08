@@ -15,7 +15,7 @@ class Examples extends HTMLElement {
     this.unsubscribe = store.subscribe(() => {
       const currentState = store.getState()
 
-      if (currentState.chat.assistant && !isEqual(this.assistant, currentState.chat.assistant) && currentState.chat.assistant.examples.length > 0) {
+      if (!currentState.chat.threadId && currentState.chat.assistant && !isEqual(this.assistant, currentState.chat.assistant) && currentState.chat.assistant.examples.length > 0) {
         this.assistant = currentState.chat.assistant
         this.render()
         this.shadow.querySelector('.examples').classList.add('active')
@@ -27,6 +27,10 @@ class Examples extends HTMLElement {
 
       if (this.assistant && !currentState.chat.thread && !currentState.chat.prompt) {
         this.shadow.querySelector('.examples').classList.add('active')      
+      }
+
+      if(currentState.chat.historyPrompts.length > 0 && this.shadow.querySelector('.examples')){
+        this.shadow.querySelector('.examples').classList.remove('active')      
       }
     })
   }

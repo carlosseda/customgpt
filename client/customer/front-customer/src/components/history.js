@@ -1,3 +1,6 @@
+import { store } from '../redux/store.js'
+import { setAssistant, setHistoryPrompts, setThread, newPrompt } from '../redux/chat-slice.js'
+
 class History extends HTMLElement {
 
   constructor () {
@@ -178,15 +181,20 @@ class History extends HTMLElement {
       li.appendChild(span)
     })
 
-    list.addEventListener('click', event => {
+    list.addEventListener('click', async event => {
 
       const li = event.target.closest('li')
 
       if (li) {
         const threadId = li.dataset.threadId
-        const assistantEndpoint = li.dataset.assistantEndpoint
         
-        
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/customer/chats/${threadId}`)
+        const data = await response.json()
+
+        store.dispatch(newPrompt(null))
+        store.dispatch(setThread(threadId))      
+        store.dispatch(setAssistant(data.assistant))
+        store.dispatch(setHistoryPrompts(data.chat.messages))
       }
     })
   }

@@ -7,6 +7,7 @@ export const chatSlice = createSlice({
     assistant: null,
     threadId: null,
     prompt: null,
+    historyPrompts: [],
     responseState: false,
     images: null
   },
@@ -28,10 +29,21 @@ export const chatSlice = createSlice({
     },
     setImages: (state, action) => {
       state.images = action.payload
+    },
+    setHistoryPrompts: (state, action) => {
+      state.historyPrompts = action.payload
     }
   }
 })
 
-export const { setUser, setAssistant, newPrompt, setResponseState, setThread, setImages } = chatSlice.actions
+export const { 
+  setUser, 
+  setAssistant, 
+  newPrompt, 
+  setResponseState, 
+  setThread, 
+  setImages, 
+  setHistoryPrompts 
+} = chatSlice.actions
 
 export default chatSlice.reducer

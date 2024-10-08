@@ -6,7 +6,6 @@ const chromaClient = new ChromaClient()
 const fs = require('fs')
 const path = require('path')
 const { broadcast } = require('../../services/websocket-service')
-const { threadId } = require('worker_threads')
 
 exports.findAll = async (req, res) => {
   const { assistants } = req.body
@@ -47,7 +46,7 @@ exports.assistantResponse = async (req, res) => {
       await openai.createThread()
 
       broadcast('responseState', {
-        threadId: openai.threadId,
+        threadId: req.body.temporaryThreadId,
         message: 'consultando mi fuente de conocimiento...'
       })
 
@@ -75,7 +74,7 @@ exports.assistantResponse = async (req, res) => {
 
       prompt = `${req.body.prompt} ${JSON.stringify(elements)}`
       broadcast('responseState', {
-        threadId: openai.threadId,
+        threadId: req.body.temporaryThreadId,
         message: 'analizando los datos...'
       })
     }

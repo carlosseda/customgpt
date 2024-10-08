@@ -28,6 +28,10 @@ class PromptInput extends HTMLElement {
       if (currentState.chat.assistant) {
         this.shadow.querySelector('.prompt-input').classList.add('active')
       }
+
+      if (!currentState.chat.thread && !currentState.chat.prompt) {
+        this.shadow.querySelector('textarea').value = ''
+      }
     })
 
     this.render()
@@ -202,7 +206,7 @@ class PromptInput extends HTMLElement {
             </button>
           </div>
           <div class="form-element">
-            <textarea placeholder="Escriba aquí su mensaje..."></textarea>
+            <textarea placeholder="Escribe aquí tu mensaje..."></textarea>
           </div>
           <div class="interaction-button">
             <div class="stop-button">

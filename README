@@ -1,4 +1,4 @@
-Abrir la base de datos de vectores desde cmd. Ir hasta la carpeta del proyecto y ejecutar el siguiente comando:
+Abrir la base de datos de vectores. En la carpeta del proyecto:
 
 ```
 chroma run --path ./api/src/chromadb
